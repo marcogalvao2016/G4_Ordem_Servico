@@ -1,0 +1,26 @@
+name: g4_os
+description: Aplicativo SaaS G4 OS com funcionamento offline.
+publish_to: "none"
+
+version: 0.5.0+7
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  sqflite: ^2.4.2
+  path: ^1.9.1
+  uuid: ^4.5.1
+  shared_preferences: ^2.5.3
+  http: ^1.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

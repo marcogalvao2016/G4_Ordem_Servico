@@ -1,0 +1,34 @@
+ATUALIZAÇÃO — CADASTRO DE ITENS
+
+1. Extraia este ZIP sobre a pasta do projeto:
+   D:\Desenvolvimento\GS_OS
+
+2. Permita a substituição dos arquivos.
+
+3. Execute:
+   flutter clean
+   flutter pub get
+   flutter run -d 52006ed0b6dda40b
+
+RECURSOS INCLUÍDOS
+
+- Cadastro, edição, exclusão e pesquisa de itens.
+- Vínculo textual inicial com cliente/proprietário.
+- Tipos:
+  Carro, Caminhão, Moto, Máquina agrícola, Equipamento,
+  Computador, Ar-condicionado e Outro.
+- Campos comuns:
+  descrição, marca, modelo, identificação, número de série,
+  patrimônio e observações.
+- Campos dinâmicos conforme o tipo:
+  veículos: placa, RENAVAM, chassi, ano, cor e quilometragem;
+  máquina agrícola: ano, horímetro e chassi;
+  computador: processador, memória e armazenamento;
+  ar-condicionado: BTUs e tipo de gás.
+- Validações e conversão automática de placa/chassi para maiúsculas.
+
+OBSERVAÇÃO
+
+Nesta etapa, os dados ficam em memória, como nas telas iniciais do projeto.
+Na etapa SQLite, o campo cliente será convertido para relacionamento pelo ID
+do cliente cadastrado, e os itens passarão a permanecer salvos no aparelho.
