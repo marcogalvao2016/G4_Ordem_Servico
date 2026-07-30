@@ -7,7 +7,7 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._();
 
   static const String databaseName = 'g4_os.db';
-  static const int databaseVersion = 3;
+  static const int databaseVersion = 4;
 
   Database? _database;
 
@@ -129,6 +129,29 @@ class DatabaseService {
 
 
       await txn.execute('''
+        CREATE TABLE os_servicos (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          uuid TEXT NOT NULL UNIQUE,
+          empresa_uuid TEXT NOT NULL,
+          ordem_uuid TEXT NOT NULL,
+          servico_uuid TEXT NOT NULL,
+          descricao TEXT NOT NULL,
+          quantidade REAL NOT NULL DEFAULT 1,
+          valor_unitario REAL NOT NULL DEFAULT 0,
+          desconto REAL NOT NULL DEFAULT 0,
+          valor_total REAL NOT NULL DEFAULT 0,
+          observacao TEXT,
+          ordem INTEGER NOT NULL DEFAULT 0,
+          criado_em TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL,
+          sincronizado INTEGER NOT NULL DEFAULT 0,
+          excluido INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (ordem_uuid) REFERENCES ordens_servico(uuid) ON DELETE CASCADE,
+          FOREIGN KEY (servico_uuid) REFERENCES servicos(uuid)
+        )
+      ''');
+
+      await txn.execute('''
         CREATE TABLE os_checklist (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           uuid TEXT NOT NULL UNIQUE,
@@ -186,6 +209,10 @@ class DatabaseService {
       await txn.execute(
         'CREATE INDEX idx_os_empresa_numero '
         'ON ordens_servico(empresa_uuid, numero_os)',
+      );
+      await txn.execute(
+        'CREATE INDEX idx_os_servicos_empresa_ordem '
+        'ON os_servicos(empresa_uuid, ordem_uuid, ordem)',
       );
       await txn.execute(
         'CREATE INDEX idx_checklist_empresa_ordem '
@@ -248,6 +275,68 @@ class DatabaseService {
           FOREIGN KEY (ordem_uuid) REFERENCES ordens_servico(uuid) ON DELETE CASCADE
         )
       ''');
+    }
+
+    if (oldVersion < 4) {
+      await db.transaction((txn) async {
+        await txn.execute('''
+          CREATE TABLE os_servicos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            uuid TEXT NOT NULL UNIQUE,
+            empresa_uuid TEXT NOT NULL,
+            ordem_uuid TEXT NOT NULL,
+            servico_uuid TEXT NOT NULL,
+            descricao TEXT NOT NULL,
+            quantidade REAL NOT NULL DEFAULT 1,
+            valor_unitario REAL NOT NULL DEFAULT 0,
+            desconto REAL NOT NULL DEFAULT 0,
+            valor_total REAL NOT NULL DEFAULT 0,
+            observacao TEXT,
+            ordem INTEGER NOT NULL DEFAULT 0,
+            criado_em TEXT NOT NULL,
+            atualizado_em TEXT NOT NULL,
+            sincronizado INTEGER NOT NULL DEFAULT 0,
+            excluido INTEGER NOT NULL DEFAULT 0,
+            FOREIGN KEY (ordem_uuid) REFERENCES ordens_servico(uuid) ON DELETE CASCADE,
+            FOREIGN KEY (servico_uuid) REFERENCES servicos(uuid)
+          )
+        ''');
+        await txn.execute(
+          'CREATE INDEX idx_os_servicos_empresa_ordem '
+          'ON os_servicos(empresa_uuid, ordem_uuid, ordem)',
+        );
+
+        // Migra o serviço único das OS existentes para a nova estrutura.
+        final antigos = await txn.rawQuery('''
+          SELECT os.uuid AS ordem_uuid, os.empresa_uuid, os.servico_uuid,
+                 os.valor_total, os.criado_em, os.atualizado_em,
+                 s.descricao, s.valor_padrao
+          FROM ordens_servico os
+          INNER JOIN servicos s ON s.uuid = os.servico_uuid
+          WHERE os.servico_uuid IS NOT NULL
+        ''');
+        for (final item in antigos) {
+          final ordemUuid = item['ordem_uuid'] as String;
+          final servicoUuid = item['servico_uuid'] as String;
+          final criadoEm = item['criado_em'] as String;
+          await txn.insert('os_servicos', <String, Object?>{
+            'uuid': '${ordemUuid}_$servicoUuid',
+            'empresa_uuid': item['empresa_uuid'],
+            'ordem_uuid': ordemUuid,
+            'servico_uuid': servicoUuid,
+            'descricao': item['descricao'],
+            'quantidade': 1,
+            'valor_unitario': item['valor_total'] ?? item['valor_padrao'] ?? 0,
+            'desconto': 0,
+            'valor_total': item['valor_total'] ?? item['valor_padrao'] ?? 0,
+            'ordem': 0,
+            'criado_em': criadoEm,
+            'atualizado_em': item['atualizado_em'] ?? criadoEm,
+            'sincronizado': 0,
+            'excluido': 0,
+          });
+        }
+      });
     }
   }
 

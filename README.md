@@ -143,5 +143,32 @@ A vistoria continua vinculada à OS e armazenada offline no SQLite. A tela anter
 - contador de avarias por região;
 - lista detalhada mantida abaixo do mapa;
 - sem novas dependências externas.
-"# G4_Ordem_Servico" 
-"# G4_Ordem_Servico" 
+
+## Versão 0.6.0 — Centro de Vistoria e modelos de checklist
+
+Esta versão inicia a nova arquitetura do módulo de vistoria:
+
+- tela Resumo com percentual real de preenchimento;
+- cartões de etapas concluídas, observações e avarias;
+- acesso direto a qualquer etapa pelo painel;
+- definição do checklist por modelo reutilizável;
+- modelo inicial `Veículo leve` separado da interface;
+- grupos de acessórios, motivos, tipos de atendimento e pneus carregados pelo modelo;
+- estrutura preparada para novos modelos, como moto, empilhadeira, informática e ar-condicionado.
+
+Arquivos principais adicionados:
+
+- `lib/models/checklist_template.dart`
+- `lib/services/checklist_template_service.dart`
+- `lib/widgets/vistoria/vistoria_dashboard.dart`
+
+Nenhuma migração do SQLite é necessária nesta etapa.
+
+
+## Versão 0.7.0 — múltiplos serviços por Ordem de Serviço
+
+- A OS agora aceita vários serviços.
+- Cada serviço possui quantidade, valor unitário, desconto, observação e total.
+- O valor total da OS é calculado automaticamente.
+- Nova tabela SQLite `os_servicos`.
+- Migração automática da versão 3 para 4, preservando o serviço único das OS existentes.

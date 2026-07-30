@@ -1,0 +1,22 @@
+G4 OS v0.8.5 - Correção do compartilhamento de PDF pelo WhatsApp
+
+Arquivos alterados:
+1. pubspec.yaml
+   - Versão alterada para 0.8.5+12.
+   - Removidos share_plus e path_provider, pois não são mais necessários.
+
+2. lib/services/ordem_servico_pdf_service.dart
+   - Removidos imports do share_plus e path_provider.
+   - Android continua usando MethodChannel nativo.
+   - Outras plataformas usam Printing.sharePdf.
+
+3. android/app/src/main/kotlin/com/example/g4_os/MainActivity.kt
+   - O PDF é validado após a gravação.
+   - O envio é direcionado explicitamente ao WhatsApp ou WhatsApp Business.
+   - Permissão de leitura da URI é concedida diretamente ao pacote escolhido.
+   - Isso evita a perda da permissão ao selecionar contatos pelos atalhos do Android.
+
+4. android/app/src/main/AndroidManifest.xml
+   - Declarados WhatsApp e WhatsApp Business em <queries>.
+
+Nenhuma regra de negócio, tela, banco SQLite, cadastro, OS, checklist ou geração do conteúdo do PDF foi modificada.

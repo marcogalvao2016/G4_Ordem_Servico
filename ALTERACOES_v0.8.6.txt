@@ -1,0 +1,17 @@
+G4 OS - Versão 0.8.6+13
+
+Correções no compartilhamento de PDF no Android/WhatsApp:
+
+1. Substituído ClipData.newRawUri por ClipData.newUri.
+2. Removida a flag FLAG_ACTIVITY_NEW_DOCUMENT.
+3. Adicionada validação de PDF vazio e gravação incompleta.
+4. O arquivo anterior é removido antes da nova gravação.
+5. Adicionada leitura integral da URI pelo ContentResolver antes do envio.
+6. Adicionados logs detalhados com a tag G4_SHARE.
+7. Mantida a concessão explícita de permissão de leitura ao WhatsApp.
+8. Adicionado fallback para o seletor padrão de aplicativos.
+9. Versão atualizada para 0.8.6+13.
+
+Comando para acompanhar somente os logs do compartilhamento:
+
+adb logcat -s G4_SHARE flutter

@@ -1,0 +1,30 @@
+G4 OS v0.8.0 - PDF DA ORDEM DE SERVICO
+
+RECURSOS INCLUIDOS
+- Geração da Ordem de Serviço em PDF A4.
+- Impressão usando o diálogo de impressão do Android/Windows.
+- Compartilhamento do PDF pelo WhatsApp, e-mail, Google Drive e demais aplicativos instalados.
+- Nome automático do arquivo: OS_000001.pdf.
+- Dados do cliente, item/equipamento, problema, diagnóstico, solução, serviços, descontos, total, checklist e assinaturas.
+
+NOVAS DEPENDENCIAS
+- pdf: ^3.13.0
+- printing: ^5.15.0
+
+COMANDOS
+flutter clean
+flutter pub get
+flutter run
+
+USO
+Abra uma Ordem de Serviço, preencha os dados e toque em:
+- Imprimir PDF
+- Compartilhar
+
+A Ordem de Serviço precisa ter cliente, item/equipamento, problema relatado e pelo menos um serviço.
+
+
+VERSÃO 0.8.2
+- Corrige compartilhamento no WhatsApp/Android 8.
+- O PDF agora é enviado como documento, sem texto ou assunto anexado ao mesmo compartilhamento.
+- É criada uma cópia exclusiva no cache antes de abrir a lista de aplicativos.

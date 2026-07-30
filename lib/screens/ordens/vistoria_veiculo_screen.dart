@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../models/item_atendimento.dart';
+import '../../models/checklist_template.dart';
 import '../../models/vistoria_veiculo.dart';
+import '../../services/checklist_template_service.dart';
 import '../../widgets/vehicle_damage_map.dart';
+import '../../widgets/vistoria/vistoria_dashboard.dart';
 
 class VistoriaVeiculoScreen extends StatefulWidget {
   const VistoriaVeiculoScreen({
@@ -37,42 +40,7 @@ class _VistoriaVeiculoScreenState extends State<VistoriaVeiculoScreen> {
   late final TextEditingController _prestadorNome;
   late final TextEditingController _prestadorRg;
 
-  static const _tipos = <String>[
-    'Remoção',
-    'Socorro mecânico',
-    'Troca de pneu',
-    'Carga de bateria',
-    'Chaveiro',
-    'Outro',
-  ];
-
-  static const _motivos = <String>[
-    'Pane mecânica',
-    'Pane elétrica',
-    'Colisão',
-    'Pneu',
-    'Bateria',
-    'Falta de combustível',
-    'Superaquecimento',
-    'Freios',
-    'Suspensão',
-    'Outro',
-  ];
-
-  static const _pneus = <String, String>{
-    'dianteiro_esquerdo': 'Dianteiro esquerdo',
-    'dianteiro_direito': 'Dianteiro direito',
-    'traseiro_esquerdo': 'Traseiro esquerdo',
-    'traseiro_direito': 'Traseiro direito',
-    'estepe': 'Estepe',
-  };
-
-  static const _gruposAcessorios = <String, List<String>>{
-    'Segurança': ['Triângulo', 'Macaco', 'Chave de roda', 'Extintor', 'Estepe'],
-    'Interior': ['Rádio', 'Manual', 'Documentos', 'Tapetes', 'Acendedor'],
-    'Elétrica': ['Faróis', 'Lanternas', 'Luz de freio', 'Pisca-alerta', 'Buzina'],
-    'Exterior': ['Retrovisores', 'Para-choques', 'Rodas', 'Calotas', 'Antena'],
-  };
+  final ChecklistTemplate _template = ChecklistTemplateService.veiculoLeve;
 
   @override
   void initState() {
@@ -298,7 +266,7 @@ class _VistoriaVeiculoScreenState extends State<VistoriaVeiculoScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _tipos.map((item) {
+            children: _template.tiposAtendimento.map((item) {
               final selected = _vistoria.tiposAtendimento.contains(item);
               return FilterChip(
                 label: Text(item),
@@ -317,7 +285,7 @@ class _VistoriaVeiculoScreenState extends State<VistoriaVeiculoScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _motivos.map((item) {
+            children: _template.motivos.map((item) {
               final selected = _vistoria.motivos.contains(item);
               return FilterChip(
                 label: Text(item),
@@ -408,7 +376,7 @@ class _VistoriaVeiculoScreenState extends State<VistoriaVeiculoScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           _cabecalhoEtapa('Pneus e combustível', 'Verifique cada pneu e o nível do tanque.', Icons.tire_repair_outlined),
-          ..._pneus.entries.map((entry) => Card(
+          ..._template.pneus.entries.map((entry) => Card(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 12, 8),
                   child: Row(
@@ -450,12 +418,12 @@ class _VistoriaVeiculoScreenState extends State<VistoriaVeiculoScreen> {
           _cabecalhoEtapa('Acessórios', 'Marque a situação de cada item.', Icons.inventory_2_outlined),
           const Text('OK = presente e em bom estado • Ausente = não localizado • Avariado = incompleto ou danificado'),
           const SizedBox(height: 12),
-          ..._gruposAcessorios.entries.map((grupo) => Card(
+          ..._template.gruposAcessorios.map((grupo) => Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ExpansionTile(
-                  initiallyExpanded: grupo.key == 'Segurança',
-                  title: Text(grupo.key, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  children: grupo.value.map((item) {
+                  initiallyExpanded: grupo.nome == 'Segurança',
+                  title: Text(grupo.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  children: grupo.itens.map((item) {
                     final situacao = _vistoria.acessorios[item] ?? 'Não verificado';
                     return ListTile(
                       title: Text(item),
@@ -536,7 +504,15 @@ class _VistoriaVeiculoScreenState extends State<VistoriaVeiculoScreen> {
         ],
       );
 
+  Widget _resumo() => VistoriaDashboard(
+        numeroOs: widget.numeroOs,
+        template: _template,
+        vistoria: _vistoria,
+        onAbrirEtapa: _mudarEtapa,
+      );
+
   List<Widget> get _paginas => [
+        _resumo(),
         _identificacao(),
         _atendimento(),
         _avarias(),
@@ -572,8 +548,8 @@ class _VistoriaVeiculoScreenState extends State<VistoriaVeiculoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const titulos = ['Identificação', 'Atendimento', 'Avarias', 'Pneus', 'Acessórios', 'Finalização'];
-    final progresso = (_etapa + 1) / titulos.length;
+    final titulos = _template.etapas.map((etapa) => etapa.titulo).toList();
+    final progresso = _etapa == 0 ? _itensPreenchidos / 9 : _etapa / (titulos.length - 1);
 
     return Scaffold(
       appBar: AppBar(
