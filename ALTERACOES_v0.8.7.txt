@@ -1,0 +1,16 @@
+G4 OS - versão 0.8.7+14
+
+Alterações no compartilhamento de PDF:
+- O PDF passa a ser salvo em Downloads/G4OS.
+- Android 10 ou superior usa MediaStore.
+- Android 9 ou anterior solicita permissão de armazenamento e usa FileProvider.
+- Mantidas as validações de existência, tamanho e leitura da URI.
+- Mantidos os logs G4_SHARE para diagnóstico.
+- Compartilhamento explícito com WhatsApp e fallback para seletor do Android.
+
+Teste recomendado:
+1. Desinstalar a versão anterior.
+2. Executar flutter clean e flutter pub get.
+3. Executar flutter run.
+4. Autorizar o acesso aos arquivos quando solicitado.
+5. Confirmar a existência do PDF em Download/G4OS no tablet.

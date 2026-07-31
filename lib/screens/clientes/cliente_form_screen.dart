@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../../core/utils/uppercase_text_formatter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/session/session_manager.dart';
@@ -108,7 +111,7 @@ class _ClienteFormScreenState extends State<ClienteFormScreen> {
       _cidade.text = endereco.cidade;
       _uf.text = endereco.uf.toUpperCase();
 
-      if (_complemento.text.trim().isEmpty &&
+      if (_complemento.text.trim().toUpperCase().isEmpty &&
           endereco.complemento.trim().isNotEmpty) {
         _complemento.text = endereco.complemento;
       }
@@ -194,19 +197,19 @@ class _ClienteFormScreenState extends State<ClienteFormScreen> {
         id: original?.id,
         uuid: original?.uuid ?? const Uuid().v4(),
         empresaUuid: SessionManager.instance.requireEmpresaUuid(),
-        nome: _nome.text.trim(),
+        nome: _nome.text.trim().toUpperCase(),
         tipoPessoa: _tipoPessoa,
-        cpfCnpj: _cpfCnpj.text.trim(),
-        telefone: _telefone.text.trim(),
-        email: _email.text.trim(),
-        cep: _cep.text.trim(),
-        logradouro: _logradouro.text.trim(),
-        numero: _numero.text.trim(),
-        complemento: _complemento.text.trim(),
-        bairro: _bairro.text.trim(),
-        cidade: _cidade.text.trim(),
-        uf: _uf.text.trim().toUpperCase(),
-        observacoes: _observacoes.text.trim(),
+        cpfCnpj: _cpfCnpj.text.trim().toUpperCase(),
+        telefone: _telefone.text.trim().toUpperCase(),
+        email: _email.text.trim().toUpperCase(),
+        cep: _cep.text.trim().toUpperCase(),
+        logradouro: _logradouro.text.trim().toUpperCase(),
+        numero: _numero.text.trim().toUpperCase(),
+        complemento: _complemento.text.trim().toUpperCase(),
+        bairro: _bairro.text.trim().toUpperCase(),
+        cidade: _cidade.text.trim().toUpperCase(),
+        uf: _uf.text.trim().toUpperCase().toUpperCase(),
+        observacoes: _observacoes.text.trim().toUpperCase(),
         criadoEm: original?.criadoEm ?? now,
         atualizadoEm: now,
       );
@@ -255,7 +258,7 @@ class _ClienteFormScreenState extends State<ClienteFormScreen> {
                     },
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
               controller: _nome,
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
@@ -268,7 +271,7 @@ class _ClienteFormScreenState extends State<ClienteFormScreen> {
                       : null,
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
               controller: _cpfCnpj,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
@@ -296,19 +299,19 @@ class _ClienteFormScreenState extends State<ClienteFormScreen> {
               },
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
               controller: _telefone,
               decoration: const InputDecoration(labelText: 'Telefone'),
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
               controller: _email,
               decoration: const InputDecoration(labelText: 'E-mail'),
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
               controller: _cep,
               decoration: InputDecoration(
                 labelText: 'CEP',
@@ -328,7 +331,7 @@ class _ClienteFormScreenState extends State<ClienteFormScreen> {
               onFieldSubmitted: (_) => _consultarCep(),
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
               controller: _logradouro,
               decoration: const InputDecoration(labelText: 'Logradouro'),
             ),
@@ -336,7 +339,7 @@ class _ClienteFormScreenState extends State<ClienteFormScreen> {
             Row(
               children: <Widget>[
                 Expanded(
-                  child: TextFormField(
+                  child: TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _numero,
                     focusNode: _numeroFocus,
                     decoration: const InputDecoration(labelText: 'Número'),
@@ -344,7 +347,7 @@ class _ClienteFormScreenState extends State<ClienteFormScreen> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
+                  child: TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _bairro,
                     decoration: const InputDecoration(labelText: 'Bairro'),
                   ),
@@ -352,7 +355,7 @@ class _ClienteFormScreenState extends State<ClienteFormScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
               controller: _complemento,
               decoration: const InputDecoration(labelText: 'Complemento'),
             ),
@@ -361,14 +364,14 @@ class _ClienteFormScreenState extends State<ClienteFormScreen> {
               children: <Widget>[
                 Expanded(
                   flex: 3,
-                  child: TextFormField(
+                  child: TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _cidade,
                     decoration: const InputDecoration(labelText: 'Cidade'),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
+                  child: TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _uf,
                     maxLength: 2,
                     textCapitalization: TextCapitalization.characters,
@@ -381,7 +384,7 @@ class _ClienteFormScreenState extends State<ClienteFormScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
               controller: _observacoes,
               minLines: 3,
               maxLines: 5,

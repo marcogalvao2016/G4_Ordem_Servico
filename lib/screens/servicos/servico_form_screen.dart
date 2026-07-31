@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../../core/utils/uppercase_text_formatter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/utils/formatters.dart';
@@ -55,9 +58,9 @@ class _ServicoFormScreenState extends State<ServicoFormScreen> {
         id: original?.id,
         uuid: original?.uuid ?? const Uuid().v4(),
         empresaUuid: SessionManager.instance.requireEmpresaUuid(),
-        descricao: _descricao.text.trim(),
+        descricao: _descricao.text.trim().toUpperCase(),
         valorPadrao: parseCurrency(_valor.text),
-        observacoes: _observacoes.text.trim(),
+        observacoes: _observacoes.text.trim().toUpperCase(),
         criadoEm: original?.criadoEm ?? now,
         atualizadoEm: now,
       );
@@ -91,7 +94,7 @@ class _ServicoFormScreenState extends State<ServicoFormScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: <Widget>[
-            TextFormField(
+            TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
               controller: _descricao,
               decoration: const InputDecoration(labelText: 'Descrição *'),
               validator: (value) => value == null || value.trim().isEmpty
@@ -99,7 +102,7 @@ class _ServicoFormScreenState extends State<ServicoFormScreen> {
                   : null,
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
               controller: _valor,
               decoration: const InputDecoration(
                 labelText: 'Valor padrão',
@@ -109,7 +112,7 @@ class _ServicoFormScreenState extends State<ServicoFormScreen> {
                   const TextInputType.numberWithOptions(decimal: true),
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
               controller: _observacoes,
               minLines: 3,
               maxLines: 5,

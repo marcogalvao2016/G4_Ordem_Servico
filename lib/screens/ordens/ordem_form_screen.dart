@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../../core/utils/uppercase_text_formatter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/session/session_manager.dart';
@@ -18,6 +21,7 @@ import '../../repositories/ordem_servico_item_repository.dart';
 import '../../repositories/servico_repository.dart';
 import '../../repositories/vistoria_veiculo_repository.dart';
 import '../../services/ordem_servico_pdf_service.dart';
+import '../../services/vistoria_veiculo_pdf_service.dart';
 import 'vistoria_veiculo_screen.dart';
 
 class OrdemFormScreen extends StatefulWidget {
@@ -39,6 +43,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
   final _servicoRepository = ServicoRepository();
   final _vistoriaRepository = VistoriaVeiculoRepository();
   final _pdfService = const OrdemServicoPdfService();
+  final _vistoriaPdfService = const VistoriaVeiculoPdfService();
 
   final _problema = TextEditingController();
   final _diagnostico = TextEditingController();
@@ -222,7 +227,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                   Row(
                     children: <Widget>[
                       Expanded(
-                        child: TextField(
+                        child: TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                           controller: quantidade,
                           decoration: const InputDecoration(labelText: 'Quantidade'),
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -230,7 +235,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: TextField(
+                        child: TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                           controller: valorUnitario,
                           decoration: const InputDecoration(
                             labelText: 'Valor unitário',
@@ -242,7 +247,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  TextField(
+                  TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: desconto,
                     decoration: const InputDecoration(
                       labelText: 'Desconto',
@@ -251,7 +256,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
                   const SizedBox(height: 12),
-                  TextField(
+                  TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: observacao,
                     minLines: 2,
                     maxLines: 4,
@@ -292,7 +297,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
     final qtd = parseCurrency(quantidade.text);
     final unitario = parseCurrency(valorUnitario.text);
     final valorDesconto = parseCurrency(desconto.text);
-    final textoObservacao = observacao.text.trim();
+    final textoObservacao = observacao.text.trim().toUpperCase();
 
     await WidgetsBinding.instance.endOfFrame;
     quantidade.dispose();
@@ -352,13 +357,13 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              TextField(
+              TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                 controller: quantidade,
                 decoration: const InputDecoration(labelText: 'Quantidade'),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
               const SizedBox(height: 12),
-              TextField(
+              TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                 controller: valorUnitario,
                 decoration: const InputDecoration(
                   labelText: 'Valor unitário',
@@ -367,7 +372,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
               const SizedBox(height: 12),
-              TextField(
+              TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                 controller: desconto,
                 decoration: const InputDecoration(
                   labelText: 'Desconto',
@@ -376,7 +381,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
               const SizedBox(height: 12),
-              TextField(
+              TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                 controller: observacao,
                 minLines: 2,
                 maxLines: 4,
@@ -407,7 +412,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
     final qtd = parseCurrency(quantidade.text);
     final unitario = parseCurrency(valorUnitario.text);
     final valorDesconto = parseCurrency(desconto.text);
-    final textoObservacao = observacao.text.trim();
+    final textoObservacao = observacao.text.trim().toUpperCase();
 
     await WidgetsBinding.instance.endOfFrame;
     quantidade.dispose();
@@ -442,7 +447,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                TextField(
+                TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                   controller: descricao,
                   autofocus: true,
                   textCapitalization: TextCapitalization.sentences,
@@ -452,7 +457,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                TextField(
+                TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                   controller: observacao,
                   minLines: 2,
                   maxLines: 4,
@@ -473,7 +478,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
             ),
             FilledButton(
               onPressed: () {
-                if (descricao.text.trim().isEmpty) return;
+                if (descricao.text.trim().toUpperCase().isEmpty) return;
                 FocusManager.instance.primaryFocus?.unfocus();
                 Navigator.pop(dialogContext, true);
               },
@@ -484,8 +489,8 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
       },
     );
 
-    final descricaoInformada = descricao.text.trim();
-    final observacaoInformada = observacao.text.trim();
+    final descricaoInformada = descricao.text.trim().toUpperCase();
+    final observacaoInformada = observacao.text.trim().toUpperCase();
 
     await WidgetsBinding.instance.endOfFrame;
     descricao.dispose();
@@ -523,7 +528,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
       builder: (dialogContext) {
         return AlertDialog(
           title: Text(_checklist[index].descricao),
-          content: TextField(
+          content: TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
             controller: controller,
             autofocus: true,
             minLines: 3,
@@ -552,7 +557,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
       },
     );
 
-    final observacaoInformada = controller.text.trim();
+    final observacaoInformada = controller.text.trim().toUpperCase();
 
     await WidgetsBinding.instance.endOfFrame;
     controller.dispose();
@@ -584,9 +589,9 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
       itemUuid: _itemUuid!,
       servicoUuid: null,
       status: _status,
-      descricaoProblema: _problema.text.trim(),
-      diagnostico: _diagnostico.text.trim(),
-      solucao: _solucao.text.trim(),
+      descricaoProblema: _problema.text.trim().toUpperCase(),
+      diagnostico: _diagnostico.text.trim().toUpperCase(),
+      solucao: _solucao.text.trim().toUpperCase(),
       valorTotal: _servicosDaOrdem.fold<double>(
         0,
         (soma, item) => soma + item.valorTotal,
@@ -642,6 +647,49 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Não foi possível gerar o PDF: $error')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _gerandoPdf = false);
+    }
+  }
+
+  Future<void> _gerarPdfVistoria({required bool compartilhar}) async {
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    final vistoria = _vistoria;
+    final clientes = _clientes.where((e) => e.uuid == _clienteUuid).toList();
+    final itens = _itens.where((e) => e.uuid == _itemUuid).toList();
+
+    if (vistoria == null || clientes.isEmpty || itens.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preencha a vistoria e selecione cliente e item.')),
+      );
+      return;
+    }
+
+    setState(() => _gerandoPdf = true);
+    try {
+      final ordem = _montarOrdemAtual();
+      if (compartilhar) {
+        await _vistoriaPdfService.compartilhar(
+          ordem: ordem,
+          cliente: clientes.first,
+          item: itens.first,
+          vistoria: vistoria,
+        );
+      } else {
+        await _vistoriaPdfService.imprimir(
+          ordem: ordem,
+          cliente: clientes.first,
+          item: itens.first,
+          vistoria: vistoria,
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Não foi possível gerar a vistoria: $error')),
         );
       }
     } finally {
@@ -871,7 +919,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                     },
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _problema,
                     minLines: 3,
                     maxLines: 5,
@@ -884,7 +932,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                             : null,
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _diagnostico,
                     minLines: 2,
                     maxLines: 5,
@@ -893,7 +941,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _solucao,
                     minLines: 2,
                     maxLines: 5,
@@ -902,7 +950,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _valor,
                     readOnly: true,
                     decoration: const InputDecoration(
@@ -921,36 +969,68 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                   const SizedBox(height: 8),
                   if (_vistoria != null)
                     Card(
-                      child: ListTile(
-                        leading: const CircleAvatar(
-                          child: Icon(Icons.fact_check_outlined),
-                        ),
-                        title: const Text('Abrir ficha de vistoria'),
-                        subtitle: Text(
-                          _vistoria!.atualizadoEm == _vistoria!.criadoEm
-                              ? 'Ainda não preenchida'
-                              : 'Vistoria iniciada • toque para continuar',
-                        ),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () async {
-                          final itensSelecionados = _itens
-                              .where((e) => e.uuid == _itemUuid)
-                              .toList();
-                          final resultado = await Navigator.push<VistoriaVeiculo>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => VistoriaVeiculoScreen(
-                                numeroOs: _numeroOs,
-                                initial: _vistoria!,
-                                item: itensSelecionados.isEmpty
-                                    ? null
-                                    : itensSelecionados.first,
-                              ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Column(
+                        children: <Widget>[
+                          ListTile(
+                            leading: const CircleAvatar(
+                              child: Icon(Icons.fact_check_outlined),
                             ),
-                          );
-                          if (!mounted || resultado == null) return;
-                          setState(() => _vistoria = resultado);
-                        },
+                            title: const Text('Abrir ficha de vistoria'),
+                            subtitle: Text(
+                              _vistoria!.atualizadoEm == _vistoria!.criadoEm
+                                  ? 'Ainda não preenchida'
+                                  : 'Vistoria iniciada • toque para continuar',
+                            ),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () async {
+                              final itensSelecionados = _itens
+                                  .where((e) => e.uuid == _itemUuid)
+                                  .toList();
+                              final resultado = await Navigator.push<VistoriaVeiculo>(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => VistoriaVeiculoScreen(
+                                    numeroOs: _numeroOs,
+                                    initial: _vistoria!,
+                                    item: itensSelecionados.isEmpty
+                                        ? null
+                                        : itensSelecionados.first,
+                                  ),
+                                ),
+                              );
+                              if (!mounted || resultado == null) return;
+                              setState(() => _vistoria = resultado);
+                            },
+                          ),
+                          const Divider(height: 1),
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _salvando || _gerandoPdf
+                                        ? null
+                                        : () => _gerarPdfVistoria(compartilhar: false),
+                                    icon: const Icon(Icons.print_outlined),
+                                    label: const Text('Imprimir vistoria'),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: FilledButton.tonalIcon(
+                                    onPressed: _salvando || _gerandoPdf
+                                        ? null
+                                        : () => _gerarPdfVistoria(compartilhar: true),
+                                    icon: const Icon(Icons.share_outlined),
+                                    label: const Text('Compartilhar'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   const SizedBox(height: 24),

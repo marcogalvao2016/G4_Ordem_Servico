@@ -1,0 +1,7 @@
+G4 OS v0.9.0+15
+
+- Impressão da ficha de vistoria em PDF.
+- Compartilhamento da ficha de vistoria em Downloads/G4OS.
+- Todos os campos cadastrais ativos convertidos para letras maiúsculas.
+- Listas de clientes, serviços, itens e ordens redesenhadas com cartões e badges elegantes.
+- Mantida a correção de compartilhamento do Android 8.1.

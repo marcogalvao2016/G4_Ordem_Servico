@@ -121,11 +121,10 @@ class OrdemServicoPdfService {
     print('G4_SHARE_FLUTTER: nome=$nomeArquivo');
     print('G4_SHARE_FLUTTER: bytes=${bytes.length}');
 
-    // No Android, o compartilhamento é feito pelo código nativo. O arquivo é
-    // gravado no cache do aplicativo e entregue por um FileProvider com
-    // permissão de leitura para o aplicativo escolhido. Isso evita o erro do
-    // WhatsApp em aparelhos antigos: "Esta mídia não existe no seu
-    // armazenamento interno".
+    // No Android, o código nativo grava o PDF em Downloads/G4OS e entrega
+    // uma URI com permissão temporária de leitura ao aplicativo escolhido.
+    // Em Android 9 ou anterior, a permissão de armazenamento é solicitada
+    // na primeira utilização.
     if (Platform.isAndroid) {
       const canal = MethodChannel('g4_os/compartilhamento');
       await canal.invokeMethod<void>(

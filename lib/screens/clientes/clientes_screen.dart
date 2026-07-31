@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/session/session_manager.dart';
 import '../../models/cliente.dart';
 import '../../repositories/cliente_repository.dart';
+import '../../widgets/elegant_list_card.dart';
 import 'cliente_form_screen.dart';
 
 class ClientesScreen extends StatefulWidget {
@@ -90,28 +91,33 @@ class _ClientesScreenState extends State<ClientesScreen> {
             return const Center(child: Text('Nenhum cliente cadastrado.'));
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.only(bottom: 96),
+          return ListView.builder(
+            padding: const EdgeInsets.only(top: 6, bottom: 96),
             itemCount: clientes.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final cliente = clientes[index];
-              return ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.person)),
-                title: Text(cliente.nome),
-                subtitle: Text(
-                  [
-                    cliente.cpfCnpj,
-                    cliente.telefone,
-                    cliente.cidade,
-                  ].where((e) => e != null && e!.trim().isNotEmpty).join(' • '),
+              final badges = <Widget>[
+                ElegantBadge(
+                  label: cliente.tipoPessoa == 'J' ? 'PESSOA JURÍDICA' : 'PESSOA FÍSICA',
+                  icon: cliente.tipoPessoa == 'J' ? Icons.business_outlined : Icons.person_outline,
+                  emphasis: true,
                 ),
+                if ((cliente.cpfCnpj ?? '').trim().isNotEmpty)
+                  ElegantBadge(label: cliente.cpfCnpj!, icon: Icons.badge_outlined),
+                if ((cliente.telefone ?? '').trim().isNotEmpty)
+                  ElegantBadge(label: cliente.telefone!, icon: Icons.phone_outlined),
+                if ((cliente.cidade ?? '').trim().isNotEmpty)
+                  ElegantBadge(
+                    label: '${cliente.cidade}${(cliente.uf ?? '').trim().isEmpty ? '' : ' / ${cliente.uf}'}',
+                    icon: Icons.location_on_outlined,
+                  ),
+              ];
+              return ElegantListCard(
+                icon: Icons.person_outline,
+                title: cliente.nome,
+                badges: badges,
                 onTap: () => _abrirFormulario(cliente),
-                trailing: IconButton(
-                  tooltip: 'Excluir',
-                  onPressed: () => _excluir(cliente),
-                  icon: const Icon(Icons.delete_outline),
-                ),
+                onDelete: () => _excluir(cliente),
               );
             },
           );

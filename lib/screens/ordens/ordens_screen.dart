@@ -4,6 +4,7 @@ import '../../core/utils/formatters.dart';
 import '../../core/session/session_manager.dart';
 import '../../models/ordem_servico.dart';
 import '../../repositories/ordem_servico_repository.dart';
+import '../../widgets/elegant_list_card.dart';
 import 'ordem_form_screen.dart';
 
 class OrdensScreen extends StatefulWidget {
@@ -84,27 +85,35 @@ class _OrdensScreenState extends State<OrdensScreen> {
             return const Center(child: Text('Nenhuma ordem cadastrada.'));
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.only(bottom: 96),
+          return ListView.builder(
+            padding: const EdgeInsets.only(top: 6, bottom: 96),
             itemCount: ordens.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (_, index) {
               final ordem = ordens[index];
-              return ListTile(
-                leading: CircleAvatar(child: Text(ordem.numeroOs.toString())),
-                title: Text('OS ${ordem.numeroOs} — ${ordem.status}'),
-                subtitle: Text(
-                  '${ordem.descricaoProblema}\n'
-                  '${formatCurrency(ordem.valorTotal)}',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                isThreeLine: true,
+              return ElegantListCard(
+                icon: Icons.assignment_outlined,
+                title: 'OS ${ordem.numeroOs.toString().padLeft(6, '0')}',
+                badges: <Widget>[
+                  ElegantBadge(
+                    label: ordem.status.replaceAll('_', ' '),
+                    icon: Icons.flag_outlined,
+                    emphasis: true,
+                  ),
+                  ElegantBadge(
+                    label: formatCurrency(ordem.valorTotal),
+                    icon: Icons.payments_outlined,
+                  ),
+                  ElegantBadge(
+                    label: '${ordem.dataAbertura.day.toString().padLeft(2, '0')}/${ordem.dataAbertura.month.toString().padLeft(2, '0')}/${ordem.dataAbertura.year}',
+                    icon: Icons.calendar_today_outlined,
+                  ),
+                  ElegantBadge(
+                    label: ordem.descricaoProblema,
+                    icon: Icons.description_outlined,
+                  ),
+                ],
                 onTap: () => _abrir(ordem),
-                trailing: IconButton(
-                  onPressed: () => _excluir(ordem),
-                  icon: const Icon(Icons.delete_outline),
-                ),
+                onDelete: () => _excluir(ordem),
               );
             },
           );

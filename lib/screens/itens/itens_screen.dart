@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/session/session_manager.dart';
 import '../../models/item_atendimento.dart';
 import '../../repositories/item_repository.dart';
+import '../../widgets/elegant_list_card.dart';
 import 'item_form_screen.dart';
 
 class ItensScreen extends StatefulWidget {
@@ -85,25 +86,25 @@ class _ItensScreenState extends State<ItensScreen> {
             return const Center(child: Text('Nenhum item cadastrado.'));
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.only(bottom: 96),
+          return ListView.builder(
+            padding: const EdgeInsets.only(top: 6, bottom: 96),
             itemCount: itens.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (_, index) {
               final item = itens[index];
-              return ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.devices_other)),
-                title: Text(item.descricao),
-                subtitle: Text(
-                  <String?>[item.tipo, item.marca, item.modelo, item.placa]
-                      .where((e) => e != null && e!.trim().isNotEmpty)
-                      .join(' • '),
-                ),
+              return ElegantListCard(
+                icon: Icons.directions_car_outlined,
+                title: item.descricao,
+                badges: <Widget>[
+                  ElegantBadge(label: item.tipo, icon: Icons.category_outlined, emphasis: true),
+                  if ((item.marca ?? '').trim().isNotEmpty)
+                    ElegantBadge(label: item.marca!, icon: Icons.sell_outlined),
+                  if ((item.modelo ?? '').trim().isNotEmpty)
+                    ElegantBadge(label: item.modelo!, icon: Icons.info_outline),
+                  if ((item.placa ?? '').trim().isNotEmpty)
+                    ElegantBadge(label: item.placa!, icon: Icons.pin_outlined),
+                ],
                 onTap: () => _abrir(item),
-                trailing: IconButton(
-                  onPressed: () => _excluir(item),
-                  icon: const Icon(Icons.delete_outline),
-                ),
+                onDelete: () => _excluir(item),
               );
             },
           );

@@ -4,6 +4,7 @@ import '../../core/utils/formatters.dart';
 import '../../core/session/session_manager.dart';
 import '../../models/servico.dart';
 import '../../repositories/servico_repository.dart';
+import '../../widgets/elegant_list_card.dart';
 import 'servico_form_screen.dart';
 
 class ServicosScreen extends StatefulWidget {
@@ -82,21 +83,25 @@ class _ServicosScreenState extends State<ServicosScreen> {
             return const Center(child: Text('Nenhum serviço cadastrado.'));
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.only(bottom: 96),
+          return ListView.builder(
+            padding: const EdgeInsets.only(top: 6, bottom: 96),
             itemCount: servicos.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (_, index) {
               final servico = servicos[index];
-              return ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.build)),
-                title: Text(servico.descricao),
-                subtitle: Text(formatCurrency(servico.valorPadrao)),
+              return ElegantListCard(
+                icon: Icons.build_outlined,
+                title: servico.descricao,
+                badges: <Widget>[
+                  ElegantBadge(
+                    label: formatCurrency(servico.valorPadrao),
+                    icon: Icons.payments_outlined,
+                    emphasis: true,
+                  ),
+                  if ((servico.observacoes ?? '').trim().isNotEmpty)
+                    ElegantBadge(label: 'COM OBSERVAÇÃO', icon: Icons.notes_outlined),
+                ],
                 onTap: () => _abrir(servico),
-                trailing: IconButton(
-                  onPressed: () => _excluir(servico),
-                  icon: const Icon(Icons.delete_outline),
-                ),
+                onDelete: () => _excluir(servico),
               );
             },
           );

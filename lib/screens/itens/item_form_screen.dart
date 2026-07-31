@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../../core/utils/uppercase_text_formatter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/session/session_manager.dart';
@@ -106,14 +109,14 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
         empresaUuid: SessionManager.instance.requireEmpresaUuid(),
         clienteUuid: _clienteUuid!,
         tipo: _tipo,
-        descricao: _descricao.text.trim(),
-        marca: _marca.text.trim(),
-        modelo: _modelo.text.trim(),
-        numeroSerie: _numeroSerie.text.trim(),
-        placa: _placa.text.trim().toUpperCase(),
-        ano: _ano.text.trim(),
-        cor: _cor.text.trim(),
-        observacoes: _observacoes.text.trim(),
+        descricao: _descricao.text.trim().toUpperCase(),
+        marca: _marca.text.trim().toUpperCase(),
+        modelo: _modelo.text.trim().toUpperCase(),
+        numeroSerie: _numeroSerie.text.trim().toUpperCase(),
+        placa: _placa.text.trim().toUpperCase().toUpperCase(),
+        ano: _ano.text.trim().toUpperCase(),
+        cor: _cor.text.trim().toUpperCase(),
+        observacoes: _observacoes.text.trim().toUpperCase(),
         criadoEm: original?.criadoEm ?? now,
         atualizadoEm: now,
       );
@@ -185,7 +188,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                     onChanged: (value) => setState(() => _tipo = value!),
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _descricao,
                     decoration: const InputDecoration(labelText: 'Descrição *'),
                     validator: (value) => value == null || value.trim().isEmpty
@@ -193,17 +196,17 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                         : null,
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _marca,
                     decoration: const InputDecoration(labelText: 'Marca'),
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _modelo,
                     decoration: const InputDecoration(labelText: 'Modelo'),
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _numeroSerie,
                     decoration:
                         const InputDecoration(labelText: 'Número de série / Chassi'),
@@ -212,14 +215,14 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                   Row(
                     children: <Widget>[
                       Expanded(
-                        child: TextFormField(
+                        child: TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                           controller: _placa,
                           decoration: const InputDecoration(labelText: 'Placa'),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: TextFormField(
+                        child: TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                           controller: _ano,
                           decoration: const InputDecoration(labelText: 'Ano'),
                         ),
@@ -227,12 +230,12 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _cor,
                     decoration: const InputDecoration(labelText: 'Cor'),
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _observacoes,
                     minLines: 3,
                     maxLines: 5,

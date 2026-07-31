@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../../core/utils/uppercase_text_formatter.dart';
 
 import '../../models/item_atendimento.dart';
 import '../../models/checklist_template.dart';
@@ -134,7 +137,7 @@ class _VistoriaVeiculoScreenState extends State<VistoriaVeiculoScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
-                TextField(controller: detalhe, decoration: _dec('Detalhes')),
+                TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], controller: detalhe, decoration: _dec('Detalhes')),
               ],
             ),
           ),
@@ -152,7 +155,7 @@ class _VistoriaVeiculoScreenState extends State<VistoriaVeiculoScreen> {
                 final value = <String, String>{
                   'area': area,
                   'tipo': tipo,
-                  'detalhe': detalhe.text.trim(),
+                  'detalhe': detalhe.text.trim().toUpperCase(),
                 };
                 FocusManager.instance.primaryFocus?.unfocus();
                 await WidgetsBinding.instance.endOfFrame;
@@ -229,25 +232,25 @@ class _VistoriaVeiculoScreenState extends State<VistoriaVeiculoScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        TextField(
+        TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
           controller: _motorista,
           decoration: _dec('Motorista', icon: Icons.person_outline),
           onChanged: (value) => _alterar(_vistoria.copyWith(nomeMotorista: value)),
         ),
         const SizedBox(height: 12),
-        TextField(
+        TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
           controller: _local,
           decoration: _dec('Local de origem', icon: Icons.trip_origin),
           onChanged: (value) => _alterar(_vistoria.copyWith(local: value)),
         ),
         const SizedBox(height: 12),
-        TextField(
+        TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
           controller: _destino,
           decoration: _dec('Destino', icon: Icons.location_on_outlined),
           onChanged: (value) => _alterar(_vistoria.copyWith(destino: value)),
         ),
         const SizedBox(height: 12),
-        TextField(
+        TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
           controller: _km,
           keyboardType: TextInputType.number,
           decoration: _dec('Quilometragem', icon: Icons.speed),
@@ -299,7 +302,7 @@ class _VistoriaVeiculoScreenState extends State<VistoriaVeiculoScreen> {
             }).toList(),
           ),
           const SizedBox(height: 12),
-          TextField(
+          TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
             controller: _outroMotivo,
             minLines: 2,
             maxLines: 4,
@@ -463,7 +466,7 @@ class _VistoriaVeiculoScreenState extends State<VistoriaVeiculoScreen> {
             onChanged: (value) => _alterar(_vistoria.copyWith(patioCiente: value ?? false)),
           ),
           const SizedBox(height: 8),
-          TextField(
+          TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
             controller: _observacoes,
             minLines: 3,
             maxLines: 6,
@@ -473,21 +476,21 @@ class _VistoriaVeiculoScreenState extends State<VistoriaVeiculoScreen> {
           const SizedBox(height: 20),
           Text('Segurado ou beneficiário', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          TextField(controller: _seguradoNome, decoration: _dec('Nome'), onChanged: (v) => _alterar(_vistoria.copyWith(seguradoNome: v))),
+          TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], controller: _seguradoNome, decoration: _dec('Nome'), onChanged: (v) => _alterar(_vistoria.copyWith(seguradoNome: v))),
           const SizedBox(height: 8),
-          TextField(controller: _seguradoRg, decoration: _dec('RG'), onChanged: (v) => _alterar(_vistoria.copyWith(seguradoRg: v))),
+          TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], controller: _seguradoRg, decoration: _dec('RG'), onChanged: (v) => _alterar(_vistoria.copyWith(seguradoRg: v))),
           const SizedBox(height: 20),
           Text('Destinatário', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          TextField(controller: _destinatarioNome, decoration: _dec('Nome'), onChanged: (v) => _alterar(_vistoria.copyWith(destinatarioNome: v))),
+          TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], controller: _destinatarioNome, decoration: _dec('Nome'), onChanged: (v) => _alterar(_vistoria.copyWith(destinatarioNome: v))),
           const SizedBox(height: 8),
-          TextField(controller: _destinatarioRg, decoration: _dec('RG'), onChanged: (v) => _alterar(_vistoria.copyWith(destinatarioRg: v))),
+          TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], controller: _destinatarioRg, decoration: _dec('RG'), onChanged: (v) => _alterar(_vistoria.copyWith(destinatarioRg: v))),
           const SizedBox(height: 20),
           Text('Prestador', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          TextField(controller: _prestadorNome, decoration: _dec('Nome'), onChanged: (v) => _alterar(_vistoria.copyWith(prestadorNome: v))),
+          TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], controller: _prestadorNome, decoration: _dec('Nome'), onChanged: (v) => _alterar(_vistoria.copyWith(prestadorNome: v))),
           const SizedBox(height: 8),
-          TextField(controller: _prestadorRg, decoration: _dec('RG'), onChanged: (v) => _alterar(_vistoria.copyWith(prestadorRg: v))),
+          TextField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], controller: _prestadorRg, decoration: _dec('RG'), onChanged: (v) => _alterar(_vistoria.copyWith(prestadorRg: v))),
           const SizedBox(height: 20),
           Card(
             child: Padding(

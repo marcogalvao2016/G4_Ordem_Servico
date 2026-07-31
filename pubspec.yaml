@@ -2,7 +2,7 @@ name: g4_os
 description: Aplicativo SaaS G4 OS com funcionamento offline.
 publish_to: "none"
 
-version: 0.8.6+13
+version: 0.9.0+15
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

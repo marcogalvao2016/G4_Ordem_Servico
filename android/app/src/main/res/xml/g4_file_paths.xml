@@ -3,4 +3,8 @@
     <cache-path
         name="shared_pdfs"
         path="shared_pdfs/" />
+
+    <external-path
+        name="downloads_g4os"
+        path="Download/G4OS/" />
 </paths>
