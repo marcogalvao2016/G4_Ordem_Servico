@@ -7,7 +7,7 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._();
 
   static const String databaseName = 'g4_os.db';
-  static const int databaseVersion = 4;
+  static const int databaseVersion = 10;
 
   Database? _database;
 
@@ -114,6 +114,7 @@ class DatabaseService {
           diagnostico TEXT,
           solucao TEXT,
           valor_total REAL NOT NULL DEFAULT 0,
+          km_atual INTEGER,
           data_abertura TEXT NOT NULL,
           data_conclusao TEXT,
           criado_em TEXT NOT NULL,
@@ -127,6 +128,109 @@ class DatabaseService {
         )
       ''');
 
+
+
+
+      await txn.execute('''
+        CREATE TABLE empresa_config (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          uuid TEXT NOT NULL UNIQUE,
+          empresa_uuid TEXT NOT NULL UNIQUE,
+          nome TEXT NOT NULL,
+          cnpj TEXT,
+          inscricao_estadual TEXT,
+          celular TEXT,
+          email TEXT,
+          endereco TEXT,
+          bairro TEXT,
+          cep TEXT,
+          cidade TEXT,
+          uf TEXT,
+          logo_path TEXT,
+          criado_em TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL,
+          sincronizado INTEGER NOT NULL DEFAULT 0
+        )
+      ''');
+
+      await txn.execute('''
+        CREATE TABLE configuracoes_gerais (
+          empresa_uuid TEXT PRIMARY KEY,
+          usar_manutencao_preventiva INTEGER NOT NULL DEFAULT 1,
+          usar_status INTEGER NOT NULL DEFAULT 1,
+          usar_diagnostico INTEGER NOT NULL DEFAULT 1,
+          usar_solucao_aplicada INTEGER NOT NULL DEFAULT 1,
+          usar_fotos_os INTEGER NOT NULL DEFAULT 1,
+          usar_ficha_vistoria INTEGER NOT NULL DEFAULT 1,
+          usar_checklist INTEGER NOT NULL DEFAULT 1
+        )
+      ''');
+
+      await txn.execute('''
+        CREATE TABLE os_fotos (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          uuid TEXT NOT NULL UNIQUE,
+          empresa_uuid TEXT NOT NULL,
+          ordem_uuid TEXT NOT NULL,
+          caminho_arquivo TEXT NOT NULL,
+          descricao TEXT,
+          ordem INTEGER NOT NULL DEFAULT 0,
+          criado_em TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL,
+          sincronizado INTEGER NOT NULL DEFAULT 0,
+          excluido INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (ordem_uuid) REFERENCES ordens_servico(uuid) ON DELETE CASCADE
+        )
+      ''');
+      await txn.execute(
+        'CREATE INDEX idx_os_fotos_empresa_ordem ON os_fotos(empresa_uuid, ordem_uuid, ordem)',
+      );
+
+      await txn.execute('''
+        CREATE TABLE produtos (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          uuid TEXT NOT NULL UNIQUE,
+          empresa_uuid TEXT NOT NULL,
+          codigo INTEGER NOT NULL,
+          descricao TEXT NOT NULL,
+          unidade TEXT NOT NULL DEFAULT 'UN',
+          valor_venda REAL NOT NULL DEFAULT 0,
+          ncm TEXT,
+          csosn TEXT,
+          cfop TEXT,
+          criado_em TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL,
+          sincronizado INTEGER NOT NULL DEFAULT 0,
+          excluido INTEGER NOT NULL DEFAULT 0,
+          UNIQUE (empresa_uuid, codigo)
+        )
+      ''');
+
+      await txn.execute('''
+        CREATE TABLE os_produtos (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          uuid TEXT NOT NULL UNIQUE,
+          empresa_uuid TEXT NOT NULL,
+          ordem_uuid TEXT NOT NULL,
+          produto_uuid TEXT NOT NULL,
+          codigo_produto INTEGER NOT NULL,
+          descricao TEXT NOT NULL,
+          unidade TEXT NOT NULL,
+          ncm TEXT,
+          csosn TEXT,
+          cfop TEXT,
+          quantidade REAL NOT NULL DEFAULT 1,
+          valor_unitario REAL NOT NULL DEFAULT 0,
+          valor_total REAL NOT NULL DEFAULT 0,
+          ordem INTEGER NOT NULL DEFAULT 0,
+          criado_em TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL,
+          sincronizado INTEGER NOT NULL DEFAULT 0,
+          excluido INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (ordem_uuid) REFERENCES ordens_servico(uuid) ON DELETE CASCADE,
+          FOREIGN KEY (produto_uuid) REFERENCES produtos(uuid)
+        )
+      ''');
 
       await txn.execute('''
         CREATE TABLE os_servicos (
@@ -194,6 +298,54 @@ class DatabaseService {
         )
       ''');
 
+      await txn.execute('''
+        CREATE TABLE manutencoes_preventivas (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          uuid TEXT NOT NULL UNIQUE,
+          empresa_uuid TEXT NOT NULL,
+          descricao TEXT NOT NULL,
+          categoria TEXT NOT NULL DEFAULT 'GERAL',
+          intervalo_km INTEGER,
+          intervalo_meses INTEGER,
+          observacoes TEXT,
+          ativo INTEGER NOT NULL DEFAULT 1,
+          criado_em TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL,
+          sincronizado INTEGER NOT NULL DEFAULT 0,
+          excluido INTEGER NOT NULL DEFAULT 0
+        )
+      ''');
+
+      await txn.execute('''
+        CREATE TABLE manutencao_execucoes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          uuid TEXT NOT NULL UNIQUE,
+          empresa_uuid TEXT NOT NULL,
+          item_uuid TEXT NOT NULL,
+          manutencao_uuid TEXT NOT NULL,
+          ordem_uuid TEXT,
+          quilometragem INTEGER,
+          data_execucao TEXT NOT NULL,
+          observacao TEXT,
+          criado_em TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL,
+          sincronizado INTEGER NOT NULL DEFAULT 0,
+          excluido INTEGER NOT NULL DEFAULT 0,
+          UNIQUE (ordem_uuid, manutencao_uuid),
+          FOREIGN KEY (item_uuid) REFERENCES itens(uuid),
+          FOREIGN KEY (manutencao_uuid) REFERENCES manutencoes_preventivas(uuid),
+          FOREIGN KEY (ordem_uuid) REFERENCES ordens_servico(uuid) ON DELETE CASCADE
+        )
+      ''');
+      await txn.execute(
+        'CREATE INDEX idx_manutencoes_empresa_categoria '
+        'ON manutencoes_preventivas(empresa_uuid, categoria, descricao)',
+      );
+      await txn.execute(
+        'CREATE INDEX idx_manut_exec_item '
+        'ON manutencao_execucoes(empresa_uuid, item_uuid, manutencao_uuid, data_execucao)',
+      );
+
       await txn.execute(
         'CREATE INDEX idx_clientes_empresa_nome '
         'ON clientes(empresa_uuid, nome)',
@@ -209,6 +361,14 @@ class DatabaseService {
       await txn.execute(
         'CREATE INDEX idx_os_empresa_numero '
         'ON ordens_servico(empresa_uuid, numero_os)',
+      );
+      await txn.execute(
+        'CREATE INDEX idx_produtos_empresa_descricao '
+        'ON produtos(empresa_uuid, descricao)',
+      );
+      await txn.execute(
+        'CREATE INDEX idx_os_produtos_empresa_ordem '
+        'ON os_produtos(empresa_uuid, ordem_uuid, ordem)',
       );
       await txn.execute(
         'CREATE INDEX idx_os_servicos_empresa_ordem '
@@ -338,6 +498,185 @@ class DatabaseService {
         }
       });
     }
+
+    if (oldVersion < 5) {
+      await db.transaction((txn) async {
+        await txn.execute('''
+          CREATE TABLE produtos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            uuid TEXT NOT NULL UNIQUE,
+            empresa_uuid TEXT NOT NULL,
+            codigo INTEGER NOT NULL,
+            descricao TEXT NOT NULL,
+            unidade TEXT NOT NULL DEFAULT 'UN',
+            valor_venda REAL NOT NULL DEFAULT 0,
+            ncm TEXT,
+            csosn TEXT,
+            cfop TEXT,
+            criado_em TEXT NOT NULL,
+            atualizado_em TEXT NOT NULL,
+            sincronizado INTEGER NOT NULL DEFAULT 0,
+            excluido INTEGER NOT NULL DEFAULT 0,
+            UNIQUE (empresa_uuid, codigo)
+          )
+        ''');
+        await txn.execute('''
+          CREATE TABLE os_produtos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            uuid TEXT NOT NULL UNIQUE,
+            empresa_uuid TEXT NOT NULL,
+            ordem_uuid TEXT NOT NULL,
+            produto_uuid TEXT NOT NULL,
+            codigo_produto INTEGER NOT NULL,
+            descricao TEXT NOT NULL,
+            unidade TEXT NOT NULL,
+            ncm TEXT,
+            csosn TEXT,
+            cfop TEXT,
+            quantidade REAL NOT NULL DEFAULT 1,
+            valor_unitario REAL NOT NULL DEFAULT 0,
+            valor_total REAL NOT NULL DEFAULT 0,
+            ordem INTEGER NOT NULL DEFAULT 0,
+            criado_em TEXT NOT NULL,
+            atualizado_em TEXT NOT NULL,
+            sincronizado INTEGER NOT NULL DEFAULT 0,
+            excluido INTEGER NOT NULL DEFAULT 0,
+            FOREIGN KEY (ordem_uuid) REFERENCES ordens_servico(uuid) ON DELETE CASCADE,
+            FOREIGN KEY (produto_uuid) REFERENCES produtos(uuid)
+          )
+        ''');
+        await txn.execute(
+          'CREATE INDEX idx_produtos_empresa_descricao '
+          'ON produtos(empresa_uuid, descricao)',
+        );
+        await txn.execute(
+          'CREATE INDEX idx_os_produtos_empresa_ordem '
+          'ON os_produtos(empresa_uuid, ordem_uuid, ordem)',
+        );
+      });
+    }
+
+    if (oldVersion < 6) {
+      await db.execute('''
+        CREATE TABLE empresa_config (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          uuid TEXT NOT NULL UNIQUE,
+          empresa_uuid TEXT NOT NULL UNIQUE,
+          nome TEXT NOT NULL,
+          cnpj TEXT,
+          inscricao_estadual TEXT,
+          celular TEXT,
+          email TEXT,
+          endereco TEXT,
+          bairro TEXT,
+          cep TEXT,
+          cidade TEXT,
+          uf TEXT,
+          logo_path TEXT,
+          criado_em TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL,
+          sincronizado INTEGER NOT NULL DEFAULT 0
+        )
+      ''');
+    }
+
+    if (oldVersion < 7) {
+      await db.execute('''
+        CREATE TABLE os_fotos (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          uuid TEXT NOT NULL UNIQUE,
+          empresa_uuid TEXT NOT NULL,
+          ordem_uuid TEXT NOT NULL,
+          caminho_arquivo TEXT NOT NULL,
+          descricao TEXT,
+          ordem INTEGER NOT NULL DEFAULT 0,
+          criado_em TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL,
+          sincronizado INTEGER NOT NULL DEFAULT 0,
+          excluido INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (ordem_uuid) REFERENCES ordens_servico(uuid) ON DELETE CASCADE
+        )
+      ''');
+      await db.execute(
+        'CREATE INDEX idx_os_fotos_empresa_ordem ON os_fotos(empresa_uuid, ordem_uuid, ordem)',
+      );
+    }
+
+    if (oldVersion < 8) {
+      await db.transaction((txn) async {
+        await txn.execute('ALTER TABLE ordens_servico ADD COLUMN km_atual INTEGER');
+        await txn.execute('''
+          CREATE TABLE manutencoes_preventivas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            uuid TEXT NOT NULL UNIQUE,
+            empresa_uuid TEXT NOT NULL,
+            descricao TEXT NOT NULL,
+            categoria TEXT NOT NULL DEFAULT 'GERAL',
+            intervalo_km INTEGER,
+            intervalo_meses INTEGER,
+            observacoes TEXT,
+            ativo INTEGER NOT NULL DEFAULT 1,
+            criado_em TEXT NOT NULL,
+            atualizado_em TEXT NOT NULL,
+            sincronizado INTEGER NOT NULL DEFAULT 0,
+            excluido INTEGER NOT NULL DEFAULT 0
+          )
+        ''');
+        await txn.execute('''
+          CREATE TABLE manutencao_execucoes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            uuid TEXT NOT NULL UNIQUE,
+            empresa_uuid TEXT NOT NULL,
+            item_uuid TEXT NOT NULL,
+            manutencao_uuid TEXT NOT NULL,
+            ordem_uuid TEXT,
+            quilometragem INTEGER,
+            data_execucao TEXT NOT NULL,
+            observacao TEXT,
+            criado_em TEXT NOT NULL,
+            atualizado_em TEXT NOT NULL,
+            sincronizado INTEGER NOT NULL DEFAULT 0,
+            excluido INTEGER NOT NULL DEFAULT 0,
+            UNIQUE (ordem_uuid, manutencao_uuid),
+            FOREIGN KEY (item_uuid) REFERENCES itens(uuid),
+            FOREIGN KEY (manutencao_uuid) REFERENCES manutencoes_preventivas(uuid),
+            FOREIGN KEY (ordem_uuid) REFERENCES ordens_servico(uuid) ON DELETE CASCADE
+          )
+        ''');
+        await txn.execute(
+          'CREATE INDEX idx_manutencoes_empresa_categoria '
+          'ON manutencoes_preventivas(empresa_uuid, categoria, descricao)',
+        );
+        await txn.execute(
+          'CREATE INDEX idx_manut_exec_item '
+          'ON manutencao_execucoes(empresa_uuid, item_uuid, manutencao_uuid, data_execucao)',
+        );
+      });
+    }
+
+    if (oldVersion < 9) {
+      final colunas = await db.rawQuery('PRAGMA table_info(empresa_config)');
+      final possuiLogo = colunas.any((coluna) => coluna['name'] == 'logo_path');
+      if (!possuiLogo) {
+        await db.execute('ALTER TABLE empresa_config ADD COLUMN logo_path TEXT');
+      }
+    }
+
+    if (oldVersion < 10) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS configuracoes_gerais (
+          empresa_uuid TEXT PRIMARY KEY,
+          usar_manutencao_preventiva INTEGER NOT NULL DEFAULT 1,
+          usar_status INTEGER NOT NULL DEFAULT 1,
+          usar_diagnostico INTEGER NOT NULL DEFAULT 1,
+          usar_solucao_aplicada INTEGER NOT NULL DEFAULT 1,
+          usar_fotos_os INTEGER NOT NULL DEFAULT 1,
+          usar_ficha_vistoria INTEGER NOT NULL DEFAULT 1,
+          usar_checklist INTEGER NOT NULL DEFAULT 1
+        )
+      ''');
+    }
+
   }
 
   Future<void> close() async {

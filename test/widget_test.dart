@@ -1,30 +1,54 @@
-// This is a basic Flutter widget test.
+// Testes unitários básicos do G4 OS.
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Não dependem de SQLite, SharedPreferences nem rede, portanto rodam
+// com `flutter test` em qualquer máquina de desenvolvimento.
 
-import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:g4_os/main.dart';
+import 'package:g4_os/core/utils/formatters.dart';
+import 'package:g4_os/core/utils/uppercase_text_formatter.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('formatCurrency', () {
+    test('formata valor com vírgula decimal', () {
+      expect(formatCurrency(10), 'R\$ 10,00');
+      expect(formatCurrency(1234.5), 'R\$ 1234,50');
+      expect(formatCurrency(0), 'R\$ 0,00');
+    });
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  group('parseCurrency', () {
+    test('converte texto monetário para double', () {
+      expect(parseCurrency('R\$ 10,00'), 10.0);
+      expect(parseCurrency('1.234,56'), 1234.56);
+      expect(parseCurrency('0,99'), 0.99);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('retorna zero para texto inválido', () {
+      expect(parseCurrency(''), 0);
+      expect(parseCurrency('abc'), 0);
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    test('é inverso de formatCurrency', () {
+      const valor = 987.65;
+      expect(parseCurrency(formatCurrency(valor)), valor);
+    });
+  });
+
+  group('UpperCaseTextFormatter', () {
+    test('converte para maiúsculas preservando o cursor', () {
+      const formatter = UpperCaseTextFormatter();
+      const antigo = TextEditingValue(text: 'joã');
+      const novo = TextEditingValue(
+        text: 'joão silva',
+        selection: TextSelection.collapsed(offset: 10),
+      );
+
+      final resultado = formatter.formatEditUpdate(antigo, novo);
+
+      expect(resultado.text, 'JOÃO SILVA');
+      expect(resultado.selection.baseOffset, 10);
+    });
   });
 }

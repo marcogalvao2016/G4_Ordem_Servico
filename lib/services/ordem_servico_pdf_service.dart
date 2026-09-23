@@ -8,9 +8,11 @@ import 'package:printing/printing.dart';
 
 import '../models/checklist_os_item.dart';
 import '../models/cliente.dart';
+import '../models/configuracoes_gerais.dart';
 import '../models/item_atendimento.dart';
 import '../models/ordem_servico.dart';
 import '../models/ordem_servico_item.dart';
+import '../models/ordem_servico_produto.dart';
 
 class OrdemServicoPdfService {
   const OrdemServicoPdfService();
@@ -20,7 +22,9 @@ class OrdemServicoPdfService {
     required Cliente cliente,
     required ItemAtendimento item,
     required List<OrdemServicoItem> servicos,
+    required List<OrdemServicoProduto> produtos,
     required List<ChecklistOsItem> checklist,
+    ConfiguracoesGerais? configuracoes,
   }) async {
     final documento = pw.Document(
       title: 'Ordem de Serviço ${ordem.numeroOs}',
@@ -33,7 +37,7 @@ class OrdemServicoPdfService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(28),
-        header: (context) => _cabecalho(ordem, context),
+        header: (context) => _cabecalho(ordem, context, configuracoes),
         footer: (context) => _rodape(context),
         build: (context) => <pw.Widget>[
           _tituloSecao('DADOS DO CLIENTE'),
@@ -57,13 +61,22 @@ class OrdemServicoPdfService {
           pw.SizedBox(height: 14),
           _tituloSecao('DETALHES DA ORDEM DE SERVIÇO'),
           _campoTexto('Problema relatado', ordem.descricaoProblema),
-          _campoTexto('Diagnóstico', ordem.diagnostico),
-          _campoTexto('Solução aplicada', ordem.solucao),
+          if (configuracoes?.usarDiagnostico != false)
+            _campoTexto('Diagnóstico', ordem.diagnostico),
+          if (configuracoes?.usarSolucaoAplicada != false)
+            _campoTexto('Solução aplicada', ordem.solucao),
           pw.SizedBox(height: 14),
           _tituloSecao('SERVIÇOS'),
           _tabelaServicos(servicos),
           pw.SizedBox(height: 14),
-          if (checklist.isNotEmpty) ...<pw.Widget>[
+          if (produtos.isNotEmpty) ...<pw.Widget>[
+            _tituloSecao('PRODUTOS / PEÇAS / ACESSÓRIOS'),
+            _tabelaProdutos(produtos),
+            pw.SizedBox(height: 14),
+          ],
+          _resumoFinanceiro(servicos, produtos),
+          pw.SizedBox(height: 14),
+          if (configuracoes?.usarChecklist != false && checklist.isNotEmpty) ...<pw.Widget>[
             _tituloSecao('CHECKLIST'),
             _checklist(checklist),
             pw.SizedBox(height: 14),
@@ -81,7 +94,9 @@ class OrdemServicoPdfService {
     required Cliente cliente,
     required ItemAtendimento item,
     required List<OrdemServicoItem> servicos,
+    required List<OrdemServicoProduto> produtos,
     required List<ChecklistOsItem> checklist,
+    ConfiguracoesGerais? configuracoes,
   }) async {
     await Printing.layoutPdf(
       name: _nomeArquivo(ordem),
@@ -90,7 +105,9 @@ class OrdemServicoPdfService {
         cliente: cliente,
         item: item,
         servicos: servicos,
+        produtos: produtos,
         checklist: checklist,
+        configuracoes: configuracoes,
       ),
     );
   }
@@ -100,14 +117,18 @@ class OrdemServicoPdfService {
     required Cliente cliente,
     required ItemAtendimento item,
     required List<OrdemServicoItem> servicos,
+    required List<OrdemServicoProduto> produtos,
     required List<ChecklistOsItem> checklist,
+    ConfiguracoesGerais? configuracoes,
   }) async {
     final bytes = await gerar(
       ordem: ordem,
       cliente: cliente,
       item: item,
       servicos: servicos,
+      produtos: produtos,
       checklist: checklist,
+      configuracoes: configuracoes,
     );
 
     final nomeArquivo = _nomeArquivo(ordem);
@@ -148,7 +169,7 @@ class OrdemServicoPdfService {
   String _nomeArquivo(OrdemServico ordem) =>
       'OS_${ordem.numeroOs.toString().padLeft(6, '0')}.pdf';
 
-  pw.Widget _cabecalho(OrdemServico ordem, pw.Context context) {
+  pw.Widget _cabecalho(OrdemServico ordem, pw.Context context, ConfiguracoesGerais? configuracoes) {
     return pw.Container(
       padding: const pw.EdgeInsets.only(bottom: 10),
       margin: const pw.EdgeInsets.only(bottom: 12),
@@ -184,7 +205,8 @@ class OrdemServicoPdfService {
               ),
               pw.Text('Nº ${ordem.numeroOs.toString().padLeft(6, '0')}'),
               pw.Text('Abertura: ${_dataHora(ordem.dataAbertura)}'),
-              pw.Text('Status: ${ordem.status.replaceAll('_', ' ')}'),
+              if (configuracoes?.usarStatus != false)
+                pw.Text('Status: ${ordem.status.replaceAll('_', ' ')}'),
             ],
           ),
         ],
@@ -314,11 +336,114 @@ class OrdemServicoPdfService {
           padding: const pw.EdgeInsets.all(8),
           color: PdfColors.grey100,
           child: pw.Text(
-            'VALOR TOTAL: ${_moeda(total)}',
+            'SUBTOTAL SERVIÇOS: ${_moeda(total)}',
             style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
           ),
         ),
       ],
+    );
+  }
+
+  pw.Widget _tabelaProdutos(List<OrdemServicoProduto> produtos) {
+    final total = produtos.fold<double>(0, (soma, item) => soma + item.valorTotal);
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+      children: <pw.Widget>[
+        pw.TableHelper.fromTextArray(
+          headers: const <String>['Cód.', 'Descrição', 'Un.', 'Qtd.', 'Vlr. unit.', 'Total'],
+          data: produtos
+              .map(
+                (item) => <String>[
+                  item.codigoProduto.toString(),
+                  item.descricao,
+                  item.unidade,
+                  _numero(item.quantidade),
+                  _moeda(item.valorUnitario),
+                  _moeda(item.valorTotal),
+                ],
+              )
+              .toList(),
+          headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8),
+          cellStyle: const pw.TextStyle(fontSize: 8),
+          headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+          border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
+          cellAlignments: const <int, pw.Alignment>{
+            0: pw.Alignment.centerRight,
+            2: pw.Alignment.center,
+            3: pw.Alignment.centerRight,
+            4: pw.Alignment.centerRight,
+            5: pw.Alignment.centerRight,
+          },
+          columnWidths: const <int, pw.TableColumnWidth>{
+            0: pw.FlexColumnWidth(0.7),
+            1: pw.FlexColumnWidth(3.0),
+            2: pw.FlexColumnWidth(0.6),
+            3: pw.FlexColumnWidth(0.7),
+            4: pw.FlexColumnWidth(1.2),
+            5: pw.FlexColumnWidth(1.2),
+          },
+        ),
+        pw.Container(
+          alignment: pw.Alignment.centerRight,
+          padding: const pw.EdgeInsets.all(8),
+          color: PdfColors.grey100,
+          child: pw.Text(
+            'SUBTOTAL PRODUTOS: ${_moeda(total)}',
+            style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          ),
+        ),
+      ],
+    );
+  }
+
+  pw.Widget _resumoFinanceiro(
+    List<OrdemServicoItem> servicos,
+    List<OrdemServicoProduto> produtos,
+  ) {
+    final totalServicos = servicos.fold<double>(0, (soma, item) => soma + item.valorTotal);
+    final totalProdutos = produtos.fold<double>(0, (soma, item) => soma + item.valorTotal);
+    final totalGeral = totalServicos + totalProdutos;
+
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(10),
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey500, width: 0.8),
+        color: PdfColors.grey200,
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+        children: <pw.Widget>[
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: <pw.Widget>[
+              pw.Text('Serviços', style: const pw.TextStyle(fontSize: 9)),
+              pw.Text(_moeda(totalServicos), style: const pw.TextStyle(fontSize: 9)),
+            ],
+          ),
+          pw.SizedBox(height: 4),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: <pw.Widget>[
+              pw.Text('Produtos', style: const pw.TextStyle(fontSize: 9)),
+              pw.Text(_moeda(totalProdutos), style: const pw.TextStyle(fontSize: 9)),
+            ],
+          ),
+          pw.Divider(color: PdfColors.grey500),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: <pw.Widget>[
+              pw.Text(
+                'TOTAL GERAL DA OS',
+                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+              ),
+              pw.Text(
+                _moeda(totalGeral),
+                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

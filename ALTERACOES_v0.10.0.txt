@@ -1,0 +1,11 @@
+G4 OS v0.10.0+16
+
+- Dashboard colorido na tela principal.
+- Resumo das ordens dos últimos três meses.
+- Quantidade de ordens abertas e concluídas.
+- Valor total das ordens no período.
+- Lista dos cinco últimos clientes atendidos.
+- Lista dos cinco últimos veículos/equipamentos atendidos.
+- Atualização por gesto de puxar a tela ou botão no AppBar.
+- Atualização automática ao retornar de qualquer módulo.
+- Consultas separadas por empresa_uuid.

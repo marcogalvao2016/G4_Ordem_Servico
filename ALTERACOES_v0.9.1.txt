@@ -1,0 +1,22 @@
+G4 OS v0.9.1+16
+
+Manutenção do repositório (sem mudança de funcionalidade):
+- Removidas as telas legadas da v0.2 que não eram mais usadas pelo app
+  (login_page, menu_principal_page, *_page de clientes/itens/serviços e
+  cadastro_base_page). Elas continham um segundo login fixo (admin/1234).
+- Removidos arquivos vazios criados por engano na raiz (adb, dir,
+  g4_share_log.txt) e incluídos no .gitignore.
+- Login: e-mail e senha de teste só vêm preenchidos em modo debug.
+  Em build release os campos iniciam vazios.
+- Android: applicationId alterado de com.example.g4_os para
+  br.com.g4sistemas.g4os (o namespace/pacote Kotlin foi mantido).
+- Teste padrão do Flutter (contador) substituído por testes reais de
+  formatação monetária e do conversor de maiúsculas.
+- README reescrito para refletir a versão atual.
+
+Atenção no teste:
+1. Por causa do novo applicationId, o Android instala o app como um
+   aplicativo NOVO. Os dados do SQLite do app antigo (com.example.g4_os)
+   não são levados. Desinstale a versão antiga depois de conferir.
+2. Executar flutter clean, flutter pub get e flutter test.
+3. Executar flutter run e conferir login, OS, PDF e compartilhamento.

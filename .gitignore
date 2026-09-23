@@ -43,3 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# G4 OS - arquivos locais de diagnóstico e saídas acidentais
+g4_share_log.txt
+*.db
+/adb
+/dir
+atualizar_repositorio.bat

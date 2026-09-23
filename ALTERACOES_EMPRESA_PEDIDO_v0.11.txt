@@ -1,0 +1,39 @@
+G4 OS - EMPRESA + IMPRESSO DE PEDIDO
+Base: GS_OS_Produtos_v0.10
+
+1. Banco de dados
+- Versão elevada de 5 para 6.
+- Nova tabela empresa_config.
+- A tabela aceita somente um cadastro por empresa_uuid (UNIQUE).
+- Migração preserva todas as tabelas e dados existentes.
+
+2. Cadastro da empresa
+- Novo botão "Cadastrar empresa" no cartão BEM-VINDO AO G4 OS.
+- Campos: nome da empresa, CNPJ, inscrição estadual, contato/celular,
+  e-mail, endereço, bairro, CEP, cidade e UF.
+- Reaproveita consultas CNPJ e CEP já existentes no projeto.
+- Cadastro é incluído/atualizado como registro único da empresa da sessão.
+
+3. Pedido / impresso
+- Novo botão "Pedido" ao lado de "Imprimir PDF" e "Compartilhar" na OS.
+- Gera PDF em formato estreito, inspirado no talão fornecido pelo usuário.
+- Cabeçalho: nome configurado da empresa; abaixo CNPJ e IE em fonte menor.
+- Não usa os textos GRILO ou Edson Pinto Alvim.
+- Dados do cliente: data, veículo, nome, endereço, cidade e telefone.
+- Tabela: Quant., Descrição das Mercadorias, P. Unit., Preço Total.
+- Reúne serviços e produtos lançados na OS e calcula o total.
+- Rodapé: endereço, bairro, cidade/UF, CEP, e-mail e contato da empresa.
+- Nome do arquivo: PEDIDO_OS_000000.pdf.
+
+4. Arquivos principais adicionados
+- lib/models/empresa.dart
+- lib/repositories/empresa_repository.dart
+- lib/screens/empresa/empresa_form_screen.dart
+- lib/services/pedido_pdf_service.dart
+
+5. Arquivos alterados
+- lib/core/database/database_service.dart
+- lib/screens/home/home_screen.dart
+- lib/screens/ordens/ordem_form_screen.dart
+
+O projeto original não foi sobrescrito.

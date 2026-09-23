@@ -1,0 +1,23 @@
+G4 OS - Inclusão isolada: Cadastro da Empresa + Impressão de Pedido
+
+Base: GS_OS(5).zip
+
+Objetivo desta entrega:
+- Preservar todas as funcionalidades existentes do aplicativo.
+- Manter o cadastro de empresa única com: nome, CNPJ, inscrição estadual, celular/contato, e-mail, endereço, bairro, CEP, cidade e UF.
+- Manter o botão "Cadastrar empresa" na tela inicial.
+- Manter o botão "Pedido" ao lado de "Imprimir PDF" e "Compartilhar" na Ordem de Serviço.
+- Gerar o Pedido em PDF usando os dados cadastrados da empresa no cabeçalho e rodapé.
+- Não incluir qualquer alteração funcional adicional nesta entrega.
+
+Arquivos diretamente relacionados à inclusão:
+- lib/models/empresa.dart
+- lib/repositories/empresa_repository.dart
+- lib/screens/empresa/empresa_form_screen.dart
+- lib/services/pedido_pdf_service.dart
+- lib/screens/home/home_screen.dart
+- lib/screens/ordens/ordem_form_screen.dart
+- lib/core/database/database_service.dart (tabela empresa_config / versão do banco já existente nesta base)
+
+Observação:
+O pacote foi gerado a partir da base GS_OS(5).zip recebida, sem refatorações adicionais no aplicativo.

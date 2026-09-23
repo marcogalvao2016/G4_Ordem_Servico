@@ -12,6 +12,7 @@ class OrdemServico {
     this.diagnostico,
     this.solucao,
     required this.valorTotal,
+    this.kmAtual,
     required this.dataAbertura,
     this.dataConclusao,
     required this.criadoEm,
@@ -32,6 +33,7 @@ class OrdemServico {
   final String? diagnostico;
   final String? solucao;
   final double valorTotal;
+  final int? kmAtual;
   final DateTime dataAbertura;
   final DateTime? dataConclusao;
   final DateTime criadoEm;
@@ -52,6 +54,7 @@ class OrdemServico {
         'diagnostico': diagnostico,
         'solucao': solucao,
         'valor_total': valorTotal,
+        'km_atual': kmAtual,
         'data_abertura': dataAbertura.toIso8601String(),
         'data_conclusao': dataConclusao?.toIso8601String(),
         'criado_em': criadoEm.toIso8601String(),
@@ -75,6 +78,7 @@ class OrdemServico {
       diagnostico: map['diagnostico'] as String?,
       solucao: map['solucao'] as String?,
       valorTotal: (map['valor_total'] as num? ?? 0).toDouble(),
+      kmAtual: (map['km_atual'] as num?)?.toInt(),
       dataAbertura: DateTime.parse(map['data_abertura'] as String),
       dataConclusao:
           conclusao == null || conclusao.isEmpty ? null : DateTime.parse(conclusao),

@@ -1,0 +1,10 @@
+G4 OS - AJUSTE DO PEDIDO
+
+Escopo exclusivo desta alteração:
+1. O PDF do Pedido passou a usar largura compacta de 90 mm.
+2. A altura do PDF é calculada dinamicamente conforme a quantidade de itens e o tamanho das descrições.
+3. Foram preservados cabeçalho com dados da empresa, dados do cliente/veículo, itens, total e rodapé da empresa.
+4. Foi criado compartilhamento do Pedido usando o mesmo canal nativo g4_os/compartilhamento já utilizado pela Ordem de Serviço e Ficha de Vistoria no Android.
+5. Em outras plataformas, o compartilhamento usa Printing.sharePdf como fallback.
+6. Na tela da OS foi incluído o botão "Compartilhar pedido", mantendo o botão "Pedido" para impressão/visualização.
+7. Nenhum cadastro, tabela, regra de OS, produto, serviço, checklist ou vistoria foi alterado por este ajuste.

@@ -1,0 +1,13 @@
+G4 OS - v1.0.1+2
+
+ALTERACAO: LOGO DA EMPRESA NO CADASTRO E NO PEDIDO
+
+- Cadastro da Empresa agora permite selecionar logo pela galeria.
+- Logo e copiado para a area interna de documentos do aplicativo.
+- Cadastro permite visualizar, trocar e remover o logo.
+- Banco SQLite atualizado da versao 8 para 9 com a coluna empresa_config.logo_path.
+- Migration preserva os dados existentes e adiciona a coluna somente quando necessario.
+- Pedido em PDF exibe o logo no cabecalho, ao lado do nome/CNPJ/IE.
+- Quando nao houver logo, o Pedido mantem o cabecalho anterior.
+- Formatos aceitos para o logo: JPG, JPEG e PNG.
+- Nenhuma outra funcionalidade do G4_OS foi alterada.

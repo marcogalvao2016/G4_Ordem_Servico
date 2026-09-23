@@ -1,0 +1,25 @@
+G4 OS - VERSAO OFICIAL
+Versao: 1.0.0+1
+
+Base: GS_OS_DEMO.zip recebido em 18/08/2026.
+
+Removido da versao de demonstracao:
+- carga ficticia completa de clientes, itens, servicos, produtos e ordens de servico;
+- menu de carregar/remover demonstracao na Home;
+- simulacao Gabriel / Fiat Uno na tela de alertas;
+- DemoDataService.
+
+Mantido:
+- filtros das Ordens de Servico por numero, status e cliente;
+- manutencoes preventivas;
+- alertas automaticos baseados no historico real;
+- clientes, itens, servicos, produtos, empresa, OS, vistoria, fotos e PDFs;
+- SQLite na estrutura existente do projeto.
+
+OBSERVACAO:
+Este pacote contem o codigo-fonte oficial. O APK nao foi recompilado neste ambiente porque o Flutter/Android SDK nao esta instalado aqui.
+Para gerar no Windows, execute na raiz do projeto:
+  flutter pub get
+  flutter build apk --release
+O APK sera criado em:
+  build\app\outputs\flutter-apk\app-release.apk

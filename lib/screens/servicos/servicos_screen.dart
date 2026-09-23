@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../core/utils/formatters.dart';
-import '../../core/session/session_manager.dart';
 import '../../models/servico.dart';
 import '../../repositories/servico_repository.dart';
 import '../../widgets/elegant_list_card.dart';

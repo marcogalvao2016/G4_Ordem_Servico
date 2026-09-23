@@ -1,0 +1,17 @@
+G4 OS v1.1.0+3 - Configurações Gerais da Ordem de Serviço
+
+Implementado em Cadastro da Empresa > Configurações:
+1. Manutenção Preventiva - exibe/oculta o acesso na OS.
+2. Status - exibe/oculta; quando desativado, a OS é salva automaticamente como CONCLUIDA.
+3. Diagnóstico - exibe/oculta na OS e no PDF da OS.
+4. Solução aplicada - exibe/oculta na OS e no PDF da OS.
+5. Fotos da Ordem de Serviço - exibe/oculta a galeria na OS.
+6. Ficha de vistoria - exibe/oculta a ficha e os comandos de impressão/compartilhamento na OS.
+7. Checklist - exibe/oculta na OS e no PDF da OS.
+
+Persistência:
+- Nova tabela configuracoes_gerais, separada por empresa_uuid.
+- SQLite atualizado da versão 9 para 10.
+- Todas as opções ficam ativadas por padrão para preservar o comportamento atual.
+- As escolhas permanecem após fechar/reiniciar o app.
+- Recursos ocultados não apagam dados históricos já existentes.

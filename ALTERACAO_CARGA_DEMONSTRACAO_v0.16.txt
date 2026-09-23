@@ -1,0 +1,17 @@
+G4 OS v0.16.0+18 - Carga completa de demonstração
+
+- Novo menu de demonstração na Home (ícone de laboratório).
+- Carga idempotente: não duplica os registros ao executar novamente.
+- Inclusão de 8 clientes fictícios (PF e PJ), com dados cadastrais completos.
+- Inclusão de 9 itens: veículos, máquina agrícola e equipamento.
+- Inclusão de 12 serviços com valores e observações.
+- Inclusão de 20 produtos com código, unidade, preço, NCM, CSOSN e CFOP.
+- Inclusão de 14 ordens de serviço distribuídas em vários status: ABERTA, EM_ANALISE, AGUARDANDO_APROVACAO, EM_EXECUCAO, CONCLUIDA e CANCELADA.
+- OS com problema relatado, diagnóstico, solução, km, datas, serviços, descontos, produtos e checklists.
+- Algumas OS incluem vistoria veicular detalhada.
+- Histórico de manutenções preventivas vinculado às OS para alimentar os alertas automáticos.
+- Datas são relativas ao dia da criação da carga para manter dashboard e alertas interessantes em qualquer época.
+- A carga de demonstração pode ser removida sem apagar cadastros reais.
+- SQLite permanece na versão 8, pois não houve alteração de estrutura.
+
+Observação: todos os nomes, documentos, telefones, e-mails, veículos, placas e demais dados da carga são fictícios e destinados apenas à apresentação do aplicativo.

@@ -1,0 +1,10 @@
+G4 OS - Correção de persistência da galeria de fotos v0.13.1
+
+Problema corrigido:
+- Ao sair da galeria pelo botão Voltar, a tela retornava null e a OS não recebia a lista atualizada.
+
+Correções:
+1. O botão Voltar agora devolve a lista atual de fotos, igual ao botão Concluir.
+2. Em uma OS já existente, a lista é persistida no SQLite imediatamente ao fechar a galeria.
+3. Em OS nova, as fotos permanecem em memória e são gravadas quando a OS for salva, evitando registros órfãos.
+4. Nenhum outro fluxo do aplicativo foi alterado.

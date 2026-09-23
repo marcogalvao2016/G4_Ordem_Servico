@@ -8,21 +8,36 @@ import '../../core/session/session_manager.dart';
 import '../../core/utils/formatters.dart';
 import '../../models/checklist_os_item.dart';
 import '../../models/cliente.dart';
+import '../../models/configuracoes_gerais.dart';
+import '../../models/empresa.dart';
 import '../../models/item_atendimento.dart';
 import '../../models/ordem_servico.dart';
 import '../../models/ordem_servico_item.dart';
+import '../../models/ordem_servico_produto.dart';
+import '../../models/ordem_servico_foto.dart';
+import '../../models/produto.dart';
 import '../../models/servico.dart';
 import '../../models/vistoria_veiculo.dart';
 import '../../repositories/checklist_os_repository.dart';
 import '../../repositories/cliente_repository.dart';
+import '../../repositories/configuracoes_gerais_repository.dart';
+import '../../repositories/empresa_repository.dart';
 import '../../repositories/item_repository.dart';
+import '../../repositories/manutencao_preventiva_repository.dart';
 import '../../repositories/ordem_servico_repository.dart';
 import '../../repositories/ordem_servico_item_repository.dart';
+import '../../repositories/ordem_servico_produto_repository.dart';
+import '../../repositories/ordem_servico_foto_repository.dart';
+import '../../repositories/produto_repository.dart';
 import '../../repositories/servico_repository.dart';
 import '../../repositories/vistoria_veiculo_repository.dart';
 import '../../services/ordem_servico_pdf_service.dart';
+import '../../services/pedido_pdf_service.dart';
+import '../../services/relatorio_fotografico_pdf_service.dart';
 import '../../services/vistoria_veiculo_pdf_service.dart';
 import 'vistoria_veiculo_screen.dart';
+import 'os_fotos_screen.dart';
+import '../manutencoes/plano_manutencao_veiculo_screen.dart';
 
 class OrdemFormScreen extends StatefulWidget {
   const OrdemFormScreen({super.key, this.ordem});
@@ -37,18 +52,27 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _repository = OrdemServicoRepository();
   final _ordemItemRepository = OrdemServicoItemRepository();
+  final _ordemProdutoRepository = OrdemServicoProdutoRepository();
+  final _ordemFotoRepository = OrdemServicoFotoRepository();
   final _checklistRepository = ChecklistOsRepository();
   final _clienteRepository = ClienteRepository();
+  final _configuracoesRepository = ConfiguracoesGeraisRepository();
+  final _empresaRepository = EmpresaRepository();
   final _itemRepository = ItemRepository();
+  final _manutencaoRepository = ManutencaoPreventivaRepository();
   final _servicoRepository = ServicoRepository();
+  final _produtoRepository = ProdutoRepository();
   final _vistoriaRepository = VistoriaVeiculoRepository();
   final _pdfService = const OrdemServicoPdfService();
+  final _pedidoPdfService = const PedidoPdfService();
+  final _relatorioFotograficoPdfService = const RelatorioFotograficoPdfService();
   final _vistoriaPdfService = const VistoriaVeiculoPdfService();
 
   final _problema = TextEditingController();
   final _diagnostico = TextEditingController();
   final _solucao = TextEditingController();
   final _valor = TextEditingController();
+  final _kmAtual = TextEditingController();
 
   late final String _ordemUuid;
 
@@ -56,8 +80,13 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
   List<ItemAtendimento> _itens = <ItemAtendimento>[];
   List<Servico> _servicos = <Servico>[];
   List<OrdemServicoItem> _servicosDaOrdem = <OrdemServicoItem>[];
+  List<Produto> _produtos = <Produto>[];
+  List<OrdemServicoProduto> _produtosDaOrdem = <OrdemServicoProduto>[];
+  List<OrdemServicoFoto> _fotosDaOrdem = <OrdemServicoFoto>[];
   List<ChecklistOsItem> _checklist = <ChecklistOsItem>[];
   VistoriaVeiculo? _vistoria;
+  ConfiguracoesGerais? _configuracoes;
+  Set<String> _manutencoesExecutadas = <String>{};
 
   String? _clienteUuid;
   String? _itemUuid;
@@ -87,6 +116,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
     _solucao.text = o?.solucao ?? '';
     _valor.text =
         o == null ? '' : o.valorTotal.toStringAsFixed(2).replaceAll('.', ',');
+    _kmAtual.text = o?.kmAtual?.toString() ?? '';
     _clienteUuid = o?.clienteUuid;
     _itemUuid = o?.itemUuid;
     _status = o?.status ?? 'ABERTA';
@@ -96,11 +126,19 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
   }
 
   Future<void> _carregar() async {
+    final configuracoes = await _configuracoesRepository.obter();
     final clientes = await _clienteRepository.listar();
     final servicos = await _servicoRepository.listar();
+    final produtos = await _produtoRepository.listar();
     final servicosDaOrdem = widget.ordem == null
         ? <OrdemServicoItem>[]
         : await _ordemItemRepository.listarPorOrdem(_ordemUuid);
+    final produtosDaOrdem = widget.ordem == null
+        ? <OrdemServicoProduto>[]
+        : await _ordemProdutoRepository.listarPorOrdem(_ordemUuid);
+    final fotosDaOrdem = widget.ordem == null
+        ? <OrdemServicoFoto>[]
+        : await _ordemFotoRepository.listarPorOrdem(_ordemUuid);
     final checklist = widget.ordem == null
         ? <ChecklistOsItem>[]
         : await _checklistRepository.listarPorOrdem(_ordemUuid);
@@ -132,16 +170,29 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
       _numeroOs = await _repository.proximoNumero();
     }
 
+    await _manutencaoRepository.garantirPadroes();
+    final manutencoesExecutadas = widget.ordem == null
+        ? <String>{}
+        : await _manutencaoRepository.listarIdsDaOrdem(_ordemUuid);
+
     if (!mounted) return;
 
     setState(() {
+      _configuracoes = configuracoes;
+      if (!configuracoes.usarStatus) {
+        _status = 'CONCLUIDA';
+      }
       _clientes = clientes;
       _servicos = servicos;
       _servicosDaOrdem = servicosDaOrdem;
+      _produtos = produtos;
+      _produtosDaOrdem = produtosDaOrdem;
+      _fotosDaOrdem = fotosDaOrdem;
       _atualizarValorTotal();
       _itens = itens;
       _checklist = checklist;
       _vistoria = vistoria;
+      _manutencoesExecutadas = manutencoesExecutadas;
       _carregando = false;
     });
   }
@@ -150,6 +201,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
     setState(() {
       _clienteUuid = clienteUuid;
       _itemUuid = null;
+      _manutencoesExecutadas = <String>{};
     });
 
     if (clienteUuid == null) return;
@@ -166,11 +218,27 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
     });
   }
 
+  bool get _itemSelecionadoEhVeiculo {
+    final itemUuid = _itemUuid;
+    if (itemUuid == null) return false;
+    final encontrados = _itens.where((e) => e.uuid == itemUuid).toList();
+    if (encontrados.isEmpty) return false;
+    return const <String>{'VEICULO', 'MOTO', 'CAMINHAO', 'MAQUINA_AGRICOLA'}
+        .contains(encontrados.first.tipo);
+  }
+
+  double get _totalServicos => _servicosDaOrdem.fold<double>(
+        0,
+        (soma, item) => soma + item.valorTotal,
+      );
+
+  double get _totalProdutos => _produtosDaOrdem.fold<double>(
+        0,
+        (soma, item) => soma + item.valorTotal,
+      );
+
   void _atualizarValorTotal() {
-    final total = _servicosDaOrdem.fold<double>(
-      0,
-      (soma, item) => soma + item.valorTotal,
-    );
+    final total = _totalServicos + _totalProdutos;
     _valor.text = total.toStringAsFixed(2).replaceAll('.', ',');
   }
 
@@ -434,6 +502,179 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
     });
   }
 
+  Future<void> _adicionarProduto() async {
+    if (_produtos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cadastre um produto antes de adicioná-lo à OS.')),
+      );
+      return;
+    }
+
+    String produtoUuid = _produtos.first.uuid;
+    final quantidade = TextEditingController(text: '1');
+    final valorUnitario = TextEditingController(
+      text: _produtos.first.valorVenda.toStringAsFixed(2).replaceAll('.', ','),
+    );
+
+    final confirmou = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) {
+          final selecionado = _produtos.firstWhere((e) => e.uuid == produtoUuid);
+          return AlertDialog(
+            title: const Text('Adicionar produto'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  DropdownButtonFormField<String>(
+                    initialValue: produtoUuid,
+                    decoration: const InputDecoration(labelText: 'Produto *'),
+                    items: _produtos.map((produto) => DropdownMenuItem<String>(
+                      value: produto.uuid,
+                      child: Text('${produto.codigo} - ${produto.descricao}'),
+                    )).toList(),
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setDialogState(() => produtoUuid = value);
+                      final novo = _produtos.firstWhere((e) => e.uuid == value);
+                      valorUnitario.text = novo.valorVenda.toStringAsFixed(2).replaceAll('.', ',');
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: TextField(
+                          controller: quantidade,
+                          decoration: InputDecoration(labelText: 'Quantidade (${selecionado.unidade})'),
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: valorUnitario,
+                          decoration: const InputDecoration(labelText: 'Valor unitário', prefixText: 'R\$ '),
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'NCM: ${selecionado.ncm ?? '-'} • CSOSN: ${selecionado.csosn ?? '-'} • CFOP: ${selecionado.cfop ?? '-'}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')),
+              FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Adicionar')),
+            ],
+          );
+        },
+      ),
+    );
+
+    final qtd = parseCurrency(quantidade.text);
+    final unitario = parseCurrency(valorUnitario.text);
+    quantidade.dispose();
+    valorUnitario.dispose();
+
+    if (!mounted || confirmou != true) return;
+    if (qtd <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('A quantidade deve ser maior que zero.')),
+      );
+      return;
+    }
+
+    final produto = _produtos.firstWhere((e) => e.uuid == produtoUuid);
+    final agora = DateTime.now();
+    setState(() {
+      _produtosDaOrdem.add(
+        OrdemServicoProduto(
+          uuid: const Uuid().v4(),
+          empresaUuid: SessionManager.instance.requireEmpresaUuid(),
+          ordemUuid: _ordemUuid,
+          produtoUuid: produto.uuid,
+          codigoProduto: produto.codigo,
+          descricao: produto.descricao,
+          unidade: produto.unidade,
+          ncm: produto.ncm,
+          csosn: produto.csosn,
+          cfop: produto.cfop,
+          quantidade: qtd,
+          valorUnitario: unitario,
+          ordem: _produtosDaOrdem.length,
+          criadoEm: agora,
+          atualizadoEm: agora,
+        ),
+      );
+      _atualizarValorTotal();
+    });
+  }
+
+  Future<void> _editarProduto(int index) async {
+    final atual = _produtosDaOrdem[index];
+    final quantidade = TextEditingController(
+      text: atual.quantidade.toStringAsFixed(2).replaceAll('.', ','),
+    );
+    final valorUnitario = TextEditingController(
+      text: atual.valorUnitario.toStringAsFixed(2).replaceAll('.', ','),
+    );
+
+    final confirmou = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(atual.descricao),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextField(
+                controller: quantidade,
+                decoration: InputDecoration(labelText: 'Quantidade (${atual.unidade})'),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: valorUnitario,
+                decoration: const InputDecoration(labelText: 'Valor unitário', prefixText: 'R\$ '),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              ),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Confirmar')),
+        ],
+      ),
+    );
+
+    final qtd = parseCurrency(quantidade.text);
+    final unitario = parseCurrency(valorUnitario.text);
+    quantidade.dispose();
+    valorUnitario.dispose();
+
+    if (!mounted || confirmou != true || qtd <= 0) return;
+    setState(() {
+      _produtosDaOrdem[index] = atual.copyWith(
+        quantidade: qtd,
+        valorUnitario: unitario,
+        atualizadoEm: DateTime.now(),
+        sincronizado: false,
+      );
+      _atualizarValorTotal();
+    });
+  }
+
   Future<void> _adicionarChecklist() async {
     final descricao = TextEditingController();
     final observacao = TextEditingController();
@@ -575,10 +816,37 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
     }
   }
 
+  Future<void> _abrirPlanoManutencao() async {
+    final itemUuid = _itemUuid;
+    if (itemUuid == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecione o veículo/item da OS.')),
+      );
+      return;
+    }
+    final selecionados = _itens.where((e) => e.uuid == itemUuid).toList();
+    if (selecionados.isEmpty) return;
+
+    final resultado = await Navigator.push<Set<String>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PlanoManutencaoVeiculoScreen(
+          item: selecionados.first,
+          kmAtual: int.tryParse(_kmAtual.text.trim()),
+          executadasNestaOrdem: _manutencoesExecutadas,
+        ),
+      ),
+    );
+    if (!mounted || resultado == null) return;
+    setState(() => _manutencoesExecutadas = resultado);
+  }
+
   OrdemServico _montarOrdemAtual() {
     final agora = DateTime.now();
     final original = widget.ordem;
-    final concluida = _status == 'CONCLUIDA';
+    final configuracoes = _configuracoes;
+    final statusEfetivo = configuracoes?.usarStatus == false ? 'CONCLUIDA' : _status;
+    final concluida = statusEfetivo == 'CONCLUIDA';
 
     return OrdemServico(
       id: original?.id,
@@ -588,14 +856,16 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
       clienteUuid: _clienteUuid!,
       itemUuid: _itemUuid!,
       servicoUuid: null,
-      status: _status,
+      status: statusEfetivo,
       descricaoProblema: _problema.text.trim().toUpperCase(),
-      diagnostico: _diagnostico.text.trim().toUpperCase(),
-      solucao: _solucao.text.trim().toUpperCase(),
-      valorTotal: _servicosDaOrdem.fold<double>(
-        0,
-        (soma, item) => soma + item.valorTotal,
-      ),
+      diagnostico: configuracoes?.usarDiagnostico == false
+          ? (original?.diagnostico ?? '')
+          : _diagnostico.text.trim().toUpperCase(),
+      solucao: configuracoes?.usarSolucaoAplicada == false
+          ? (original?.solucao ?? '')
+          : _solucao.text.trim().toUpperCase(),
+      valorTotal: _totalServicos + _totalProdutos,
+      kmAtual: int.tryParse(_kmAtual.text.trim()),
       dataAbertura: original?.dataAbertura ?? agora,
       dataConclusao: concluida ? (original?.dataConclusao ?? agora) : null,
       criadoEm: original?.criadoEm ?? agora,
@@ -632,7 +902,9 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
           cliente: clientes.first,
           item: itens.first,
           servicos: List<OrdemServicoItem>.unmodifiable(_servicosDaOrdem),
+          produtos: List<OrdemServicoProduto>.unmodifiable(_produtosDaOrdem),
           checklist: List<ChecklistOsItem>.unmodifiable(_checklist),
+          configuracoes: _configuracoes,
         );
       } else {
         await _pdfService.imprimir(
@@ -640,13 +912,127 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
           cliente: clientes.first,
           item: itens.first,
           servicos: List<OrdemServicoItem>.unmodifiable(_servicosDaOrdem),
+          produtos: List<OrdemServicoProduto>.unmodifiable(_produtosDaOrdem),
           checklist: List<ChecklistOsItem>.unmodifiable(_checklist),
+          configuracoes: _configuracoes,
         );
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Não foi possível gerar o PDF: $error')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _gerandoPdf = false);
+    }
+  }
+
+  Future<void> _gerarPedidoPdf({required bool compartilhar}) async {
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    if (!_formKey.currentState!.validate()) return;
+
+    final clientes = _clientes.where((e) => e.uuid == _clienteUuid).toList();
+    final itens = _itens.where((e) => e.uuid == _itemUuid).toList();
+    if (clientes.isEmpty || itens.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecione o cliente e o item da OS.')),
+      );
+      return;
+    }
+
+    setState(() => _gerandoPdf = true);
+    try {
+      final Empresa? empresa = await _empresaRepository.obter();
+      if (empresa == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Cadastre os dados da empresa na tela inicial antes de gerar o pedido.'),
+            ),
+          );
+        }
+        return;
+      }
+
+      final ordem = _montarOrdemAtual();
+      if (compartilhar) {
+        await _pedidoPdfService.compartilhar(
+          empresa: empresa,
+          ordem: ordem,
+          cliente: clientes.first,
+          item: itens.first,
+          servicos: List<OrdemServicoItem>.unmodifiable(_servicosDaOrdem),
+          produtos: List<OrdemServicoProduto>.unmodifiable(_produtosDaOrdem),
+        );
+      } else {
+        await _pedidoPdfService.imprimir(
+          empresa: empresa,
+          ordem: ordem,
+          cliente: clientes.first,
+          item: itens.first,
+          servicos: List<OrdemServicoItem>.unmodifiable(_servicosDaOrdem),
+          produtos: List<OrdemServicoProduto>.unmodifiable(_produtosDaOrdem),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Não foi possível gerar o pedido: $error')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _gerandoPdf = false);
+    }
+  }
+
+  Future<void> _gerarRelatorioFotografico({required bool compartilhar}) async {
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    if (_fotosDaOrdem.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Adicione ao menos uma foto à Ordem de Serviço.')),
+      );
+      return;
+    }
+
+    final clientes = _clientes.where((e) => e.uuid == _clienteUuid).toList();
+    final itens = _itens.where((e) => e.uuid == _itemUuid).toList();
+    if (clientes.isEmpty || itens.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecione o cliente e o item da OS.')),
+      );
+      return;
+    }
+
+    setState(() => _gerandoPdf = true);
+    try {
+      final ordem = _montarOrdemAtual();
+      final empresa = await _empresaRepository.obter();
+      final fotos = List<OrdemServicoFoto>.unmodifiable(_fotosDaOrdem);
+
+      if (compartilhar) {
+        await _relatorioFotograficoPdfService.compartilhar(
+          ordem: ordem,
+          cliente: clientes.first,
+          item: itens.first,
+          fotos: fotos,
+          empresa: empresa,
+        );
+      } else {
+        await _relatorioFotograficoPdfService.imprimir(
+          ordem: ordem,
+          cliente: clientes.first,
+          item: itens.first,
+          fotos: fotos,
+          empresa: empresa,
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Não foi possível gerar o relatório fotográfico: $error')),
         );
       }
     } finally {
@@ -697,6 +1083,39 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
     }
   }
 
+  Future<void> _abrirGaleriaFotos() async {
+    final resultado = await Navigator.push<List<OrdemServicoFoto>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OsFotosScreen(
+          ordemUuid: _ordemUuid,
+          fotos: List<OrdemServicoFoto>.of(_fotosDaOrdem),
+        ),
+      ),
+    );
+    if (!mounted || resultado == null) return;
+
+    setState(() => _fotosDaOrdem = resultado);
+
+    // Para OS já gravada, persiste as fotos assim que a galeria é fechada.
+    // Em uma OS nova, a persistência continua ocorrendo junto com o Salvar da OS,
+    // evitando criar registros órfãos antes da própria ordem existir.
+    if (widget.ordem != null) {
+      try {
+        await _ordemFotoRepository.substituirDaOrdem(
+          _ordemUuid,
+          _fotosDaOrdem,
+        );
+      } catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Não foi possível salvar as fotos: $error')),
+          );
+        }
+      }
+    }
+  }
+
   Future<void> _salvar() async {
     if (!_formKey.currentState!.validate()) return;
     if (_servicosDaOrdem.isEmpty) {
@@ -718,9 +1137,29 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
         await _repository.atualizar(ordem);
       }
 
+      if (_configuracoes?.usarManutencaoPreventiva != false) {
+        await _manutencaoRepository.substituirExecucoesDaOrdem(
+          ordemUuid: _ordemUuid,
+          itemUuid: _itemUuid!,
+          manutencoesUuid: _manutencoesExecutadas,
+          quilometragem: int.tryParse(_kmAtual.text.trim()),
+          dataExecucao: DateTime.now(),
+        );
+      }
+
       await _ordemItemRepository.substituirDaOrdem(
         _ordemUuid,
         _servicosDaOrdem,
+      );
+
+      await _ordemProdutoRepository.substituirDaOrdem(
+        _ordemUuid,
+        _produtosDaOrdem,
+      );
+
+      await _ordemFotoRepository.substituirDaOrdem(
+        _ordemUuid,
+        _fotosDaOrdem,
       );
 
       await _checklistRepository.substituirDaOrdem(
@@ -753,6 +1192,7 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
     _diagnostico.dispose();
     _solucao.dispose();
     _valor.dispose();
+    _kmAtual.dispose();
     super.dispose();
   }
 
@@ -825,12 +1265,52 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                         )
                         .toList(),
                     onChanged: (value) {
-                      setState(() => _itemUuid = value);
+                      setState(() {
+                        _itemUuid = value;
+                        _manutencoesExecutadas = <String>{};
+                      });
                     },
                     validator: (value) =>
                         value == null ? 'Selecione o item.' : null,
                   ),
-                  const SizedBox(height: 12),
+                  if (_itemSelecionadoEhVeiculo) ...<Widget>[
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _kmAtual,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                      decoration: const InputDecoration(
+                        labelText: 'Quilometragem atual',
+                        suffixText: 'km',
+                        prefixIcon: Icon(Icons.speed_outlined),
+                      ),
+                      validator: (value) {
+                        final texto = (value ?? '').trim();
+                        if (texto.isEmpty) return null;
+                        final km = int.tryParse(texto);
+                        if (km == null || km < 0) return 'Informe uma quilometragem válida.';
+                        return null;
+                      },
+                    ),
+                    if (_configuracoes?.usarManutencaoPreventiva != false) ...<Widget>[
+                      const SizedBox(height: 12),
+                      Card(
+                        child: ListTile(
+                          leading: const CircleAvatar(child: Icon(Icons.car_repair_outlined)),
+                          title: const Text('Manutenção preventiva'),
+                          subtitle: Text(
+                            _manutencoesExecutadas.isEmpty
+                                ? 'Consultar plano do veículo e registrar manutenções executadas'
+                                : '${_manutencoesExecutadas.length} manutenção(ões) marcada(s) como executada(s) nesta OS',
+                          ),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: _salvando ? null : _abrirPlanoManutencao,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 18),
+                  ] else
+                    const SizedBox(height: 12),
                   Row(
                     children: <Widget>[
                       Expanded(
@@ -897,27 +1377,94 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                       ),
                     );
                   }),
-                  const SizedBox(height: 12),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: _status,
-                    decoration: const InputDecoration(
-                      labelText: 'Status *',
-                    ),
-                    items: statuses
-                        .map(
-                          (status) => DropdownMenuItem<String>(
-                            value: status,
-                            child: Text(status.replaceAll('_', ' ')),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => _status = value);
-                      }
-                    },
+                  const SizedBox(height: 20),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          'Produtos da OS (${_produtosDaOrdem.length})',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      FilledButton.tonalIcon(
+                        onPressed: _salvando ? null : _adicionarProduto,
+                        icon: const Icon(Icons.add_shopping_cart_outlined),
+                        label: const Text('Adicionar'),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 8),
+                  if (_produtosDaOrdem.isEmpty)
+                    const Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('Nenhum produto/peça lançado na Ordem de Serviço.'),
+                      ),
+                    ),
+                  ...List<Widget>.generate(_produtosDaOrdem.length, (index) {
+                    final produto = _produtosDaOrdem[index];
+                    return Card(
+                      child: ListTile(
+                        leading: const CircleAvatar(child: Icon(Icons.inventory_2_outlined)),
+                        title: Text('${produto.codigoProduto} - ${produto.descricao}'),
+                        subtitle: Text(
+                          '${produto.quantidade.toStringAsFixed(2)} ${produto.unidade} × R\$ ${produto.valorUnitario.toStringAsFixed(2)}'
+                          '\nNCM ${produto.ncm ?? '-'} • CSOSN ${produto.csosn ?? '-'} • CFOP ${produto.cfop ?? '-'}',
+                        ),
+                        isThreeLine: true,
+                        trailing: SizedBox(
+                          width: 118,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: <Widget>[
+                              Text(
+                                'R\$ ${produto.valorTotal.toStringAsFixed(2)}',
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              PopupMenuButton<String>(
+                                onSelected: (acao) {
+                                  if (acao == 'editar') {
+                                    _editarProduto(index);
+                                  } else if (acao == 'remover') {
+                                    setState(() {
+                                      _produtosDaOrdem.removeAt(index);
+                                      _atualizarValorTotal();
+                                    });
+                                  }
+                                },
+                                itemBuilder: (_) => const <PopupMenuEntry<String>>[
+                                  PopupMenuItem(value: 'editar', child: Text('Editar quantidade/valor')),
+                                  PopupMenuItem(value: 'remover', child: Text('Remover')),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                  if (_configuracoes?.usarStatus != false) ...<Widget>[
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: _status,
+                      decoration: const InputDecoration(
+                        labelText: 'Status *',
+                      ),
+                      items: statuses
+                          .map(
+                            (status) => DropdownMenuItem<String>(
+                              value: status,
+                              child: Text(status.replaceAll('_', ' ')),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _status = value);
+                        }
+                      },
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _problema,
@@ -931,30 +1478,60 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                             ? 'Informe o problema relatado.'
                             : null,
                   ),
+                  if (_configuracoes?.usarDiagnostico != false) ...<Widget>[
+                    const SizedBox(height: 12),
+                    TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter],
+                      controller: _diagnostico,
+                      minLines: 2,
+                      maxLines: 5,
+                      decoration: const InputDecoration(
+                        labelText: 'Diagnóstico',
+                      ),
+                    ),
+                  ],
+                  if (_configuracoes?.usarSolucaoAplicada != false) ...<Widget>[
+                    const SizedBox(height: 12),
+                    TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter],
+                      controller: _solucao,
+                      minLines: 2,
+                      maxLines: 5,
+                      decoration: const InputDecoration(
+                        labelText: 'Solução aplicada',
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 12),
-                  TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
-                    controller: _diagnostico,
-                    minLines: 2,
-                    maxLines: 5,
-                    decoration: const InputDecoration(
-                      labelText: 'Diagnóstico',
+                  Card(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        children: <Widget>[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              const Text('Subtotal serviços'),
+                              Text('R\$ ${_totalServicos.toStringAsFixed(2)}'),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              const Text('Subtotal produtos'),
+                              Text('R\$ ${_totalProdutos.toStringAsFixed(2)}'),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
-                    controller: _solucao,
-                    minLines: 2,
-                    maxLines: 5,
-                    decoration: const InputDecoration(
-                      labelText: 'Solução aplicada',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   TextFormField(inputFormatters: const <TextInputFormatter>[upperCaseTextFormatter], 
                     controller: _valor,
                     readOnly: true,
                     decoration: const InputDecoration(
-                      labelText: 'Valor total dos serviços',
+                      labelText: 'Valor total da Ordem de Serviço',
                       prefixText: 'R\$ ',
                     ),
                     keyboardType:
@@ -962,12 +1539,39 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                   ),
 
                   const SizedBox(height: 24),
-                  Text(
-                    'Ficha de vistoria do veículo',
-                    style: Theme.of(context).textTheme.titleLarge,
+                  if (_configuracoes?.usarFotosOs != false)
+                    Card(
+                      child: ListTile(
+                        leading: const CircleAvatar(
+                          child: Icon(Icons.photo_library_outlined),
+                      ),
+                      title: const Text('Fotos da Ordem de Serviço'),
+                      subtitle: Text(
+                        _fotosDaOrdem.isEmpty
+                            ? 'Nenhuma foto adicionada • limite de 6 fotos'
+                            : '${_fotosDaOrdem.length}/6 fotos • toque para abrir a galeria',
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          if (_fotosDaOrdem.isNotEmpty)
+                            Text('${_fotosDaOrdem.length}/6'),
+                          const SizedBox(width: 6),
+                          const Icon(Icons.chevron_right),
+                        ],
+                      ),
+                      onTap: _salvando ? null : _abrirGaleriaFotos,
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  if (_vistoria != null)
+                  const SizedBox(height: 24),
+                  if (_configuracoes?.usarFichaVistoria != false) ...<Widget>[
+                    Text(
+                      'Ficha de vistoria do veículo',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (_configuracoes?.usarFichaVistoria != false && _vistoria != null)
                     Card(
                       clipBehavior: Clip.antiAlias,
                       child: Column(
@@ -1000,7 +1604,12 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                                 ),
                               );
                               if (!mounted || resultado == null) return;
-                              setState(() => _vistoria = resultado);
+                              setState(() {
+                                _vistoria = resultado;
+                                if (_kmAtual.text.trim().isEmpty && resultado.km.trim().isNotEmpty) {
+                                  _kmAtual.text = resultado.km.replaceAll(RegExp(r'[^0-9]'), '');
+                                }
+                              });
                             },
                           ),
                           const Divider(height: 1),
@@ -1034,11 +1643,12 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                       ),
                     ),
                   const SizedBox(height: 24),
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text(
-                          'Checklist ($concluidos/${_checklist.length})',
+                  if (_configuracoes?.usarChecklist != false) ...<Widget>[
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            'Checklist ($concluidos/${_checklist.length})',
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
@@ -1116,28 +1726,54 @@ class _OrdemFormScreenState extends State<OrdemFormScreen> {
                         ),
                       );
                     },
-                  ),
+                    ),
+                  ],
                   const SizedBox(height: 24),
-                  Row(
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 10,
                     children: <Widget>[
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _salvando || _gerandoPdf
-                              ? null
-                              : () => _gerarPdf(compartilhar: false),
-                          icon: const Icon(Icons.print_outlined),
-                          label: const Text('Imprimir PDF'),
-                        ),
+                      OutlinedButton.icon(
+                        onPressed: _salvando || _gerandoPdf
+                            ? null
+                            : () => _gerarPdf(compartilhar: false),
+                        icon: const Icon(Icons.print_outlined),
+                        label: const Text('Imprimir PDF'),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _salvando || _gerandoPdf
-                              ? null
-                              : () => _gerarPdf(compartilhar: true),
-                          icon: const Icon(Icons.share_outlined),
-                          label: const Text('Compartilhar'),
-                        ),
+                      OutlinedButton.icon(
+                        onPressed: _salvando || _gerandoPdf
+                            ? null
+                            : () => _gerarPdf(compartilhar: true),
+                        icon: const Icon(Icons.share_outlined),
+                        label: const Text('Compartilhar'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _salvando || _gerandoPdf
+                            ? null
+                            : () => _gerarPedidoPdf(compartilhar: false),
+                        icon: const Icon(Icons.receipt_long_outlined),
+                        label: const Text('Pedido'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _salvando || _gerandoPdf
+                            ? null
+                            : () => _gerarPedidoPdf(compartilhar: true),
+                        icon: const Icon(Icons.share_outlined),
+                        label: const Text('Compartilhar pedido'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _salvando || _gerandoPdf || _fotosDaOrdem.isEmpty
+                            ? null
+                            : () => _gerarRelatorioFotografico(compartilhar: false),
+                        icon: const Icon(Icons.photo_library_outlined),
+                        label: const Text('Relatório fotográfico'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _salvando || _gerandoPdf || _fotosDaOrdem.isEmpty
+                            ? null
+                            : () => _gerarRelatorioFotografico(compartilhar: true),
+                        icon: const Icon(Icons.share_outlined),
+                        label: const Text('Compartilhar relatório'),
                       ),
                     ],
                   ),

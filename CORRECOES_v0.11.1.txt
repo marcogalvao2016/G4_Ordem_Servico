@@ -1,0 +1,40 @@
+G4 OS - Correções da versão Empresa + Pedido
+Data: 13/08/2026
+
+Correções aplicadas após o flutter analyze enviado pelo usuário:
+
+1. DatabaseService
+- Corrigido o bloco de migração oldVersion < 6 que estava fora do método _onUpgrade.
+- A criação da tabela empresa_config agora ocorre corretamente na migração v5 -> v6.
+- A tabela empresa_config continua presente também no _onCreate para instalações novas.
+
+2. Cadastro da empresa
+- Corrigida a tentativa de acessar CnpjResult.inscricaoEstadual, propriedade que não existe no serviço atual.
+- A consulta de CNPJ continua preenchendo nome, CNPJ, telefone, e-mail e endereço.
+- Inscrição Estadual permanece como campo manual, sem apagar o que o usuário já digitou.
+
+3. Telas antigas não utilizadas
+- O projeto possuía uma segunda implementação antiga de Clientes, Itens, Serviços, Login e Menu.
+- Essas telas antigas não fazem parte do fluxo iniciado por main.dart, mas eram analisadas pelo flutter analyze e utilizavam modelos desatualizados.
+- Foram removidas de lib/ e preservadas como arquivos .txt em legacy_unreferenced/ para consulta, sem alterar as telas atuais usadas pelo aplicativo.
+
+4. Teste padrão do Flutter
+- Corrigido test/widget_test.dart, que ainda tentava instanciar a classe MyApp inexistente.
+- Atualizado para G4OsApp.
+
+5. Imports
+- Removidos imports sem uso de SessionManager em telas atuais apontados pelo analyzer.
+
+Funcionalidades preservadas:
+- Cadastro de produtos.
+- Produtos dentro da OS.
+- Total de serviços + produtos.
+- Cadastro único de empresa.
+- Botão Pedido ao lado de Imprimir PDF e Compartilhar.
+- Pedido em PDF com dados configurados da empresa.
+
+VALIDAÇÃO NO COMPUTADOR DO USUÁRIO:
+flutter clean
+flutter pub get
+flutter analyze
+flutter run

@@ -1,0 +1,41 @@
+G4 OS - Extensão Produtos na Ordem de Serviço
+Base: GS_OS(4).zip / app 0.10.0+16
+Data: 13/08/2026
+
+OBJETIVO
+Adicionar produtos, peças, óleos, pneus e acessórios às Ordens de Serviço sem alterar a lógica existente de clientes, itens/equipamentos, serviços, checklist e vistoria.
+
+BANCO DE DADOS
+- DatabaseService: versão 4 -> 5.
+- Nova tabela produtos:
+  codigo, descricao, unidade, valor_venda, ncm, csosn, cfop e campos de sincronização.
+- Nova tabela os_produtos:
+  vínculo com a OS e snapshot do produto lançado, contendo código, descrição, unidade, NCM, CSOSN, CFOP, quantidade, valor unitário e valor total.
+- Migração v4 -> v5 apenas cria as novas estruturas; nenhuma tabela atual é removida ou recriada.
+
+CADASTRO DE PRODUTOS
+- Novo módulo Produtos no Home.
+- Inclusão, edição e exclusão lógica.
+- Código sugerido automaticamente pelo próximo número disponível.
+- Campos fiscais opcionais preparados para futura emissão fiscal.
+
+ORDEM DE SERVIÇO
+- Nova seção Produtos da OS.
+- Seleção de produto já cadastrado.
+- Quantidade e valor unitário podem ser alterados no lançamento.
+- Produto lançado pode ser editado ou removido.
+- Total da OS = subtotal serviços + subtotal produtos.
+- valor_total de ordens_servico passa a armazenar o total geral.
+
+PDF
+- Serviços e produtos são exibidos separadamente.
+- Subtotal de serviços.
+- Subtotal de produtos.
+- Total geral da Ordem de Serviço.
+
+OBSERVAÇÃO
+O ambiente desta auditoria não possui Flutter/Dart SDK disponível para executar flutter analyze/build. A integração foi verificada estruturalmente no código-fonte, mas recomenda-se executar no computador de desenvolvimento:
+  flutter pub get
+  flutter analyze
+  flutter run
+antes da publicação definitiva.

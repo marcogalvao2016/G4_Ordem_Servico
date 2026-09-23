@@ -1,0 +1,44 @@
+G4 OS - Manutenção Preventiva v0.14
+Base utilizada: GS_OS_RELATORIO_FOTOGRAFICO_v0.13.1_FOTOS_CORRIGIDAS.zip
+
+OBJETIVO
+Adicionar controle configurável de manutenção preventiva para veículos, integrado à Ordem de Serviço, sem alterar os fluxos existentes de clientes, serviços, produtos, fotos, vistoria, pedido e PDFs.
+
+BANCO SQLITE
+Versão: 7 -> 8
+Alterações:
+- ordens_servico: novo campo km_atual INTEGER (opcional)
+- nova tabela manutencoes_preventivas
+- nova tabela manutencao_execucoes
+- novos índices para manutenção
+
+CADASTRO DE MANUTENÇÕES
+Novo módulo "Manutenções" na tela inicial.
+Permite:
+- criar, editar, ativar/desativar e excluir tipos de manutenção;
+- configurar categoria;
+- intervalo em quilômetros;
+- intervalo em meses;
+- observações.
+
+PADRÕES INICIAIS
+Na primeira utilização são criados automaticamente tipos de manutenção baseados na relação definida no projeto, incluindo óleo/filtro, freios, filtros, pneus, velas, correias, fluidos, suspensão, bateria, arrefecimento e revisões anuais.
+Os intervalos são referências editáveis e podem ser adaptados ao fabricante/modelo.
+
+INTEGRAÇÃO COM ORDEM DE SERVIÇO
+Para itens dos tipos VEICULO, MOTO, CAMINHAO e MAQUINA_AGRICOLA:
+- novo campo Quilometragem atual;
+- novo acesso "Manutenção preventiva";
+- tela do plano mostra histórico e situação de cada manutenção;
+- marcação das manutenções executadas na OS;
+- ao salvar a OS, as execuções são vinculadas à OS e ao veículo.
+
+SITUAÇÕES
+- VENCIDA: ultrapassou o próximo km ou a próxima data após execução anterior;
+- PRÓXIMA: está na margem de aproximação do próximo vencimento;
+- EM DIA: ainda dentro do intervalo;
+- VERIFICAR: não há histórico suficiente e a manutenção merece conferência;
+- SEM HISTÓRICO: não há execução registrada e não foi possível classificar como verificar.
+
+OBSERVAÇÃO IMPORTANTE
+O plano é uma ferramenta de apoio. O manual e as recomendações do fabricante do veículo devem prevalecer sobre os intervalos genéricos.

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../clientes/clientes_page.dart';
 import '../itens/itens_page.dart';
 import '../login/login_page.dart';
+import '../produtos/produtos_screen.dart';
 import '../servicos/servicos_page.dart';
 
 class MenuPrincipalPage extends StatelessWidget {
@@ -83,6 +84,15 @@ class MenuPrincipalPage extends StatelessWidget {
                             onTap: () => _abrirPagina(
                               context,
                               const ServicosPage(),
+                            ),
+                          ),
+                          MenuCard(
+                            titulo: 'Produtos',
+                            descricao: 'Peças, óleos, pneus e acessórios',
+                            icone: Icons.inventory_2_outlined,
+                            onTap: () => _abrirPagina(
+                              context,
+                              const ProdutosScreen(),
                             ),
                           ),
                           MenuCard(

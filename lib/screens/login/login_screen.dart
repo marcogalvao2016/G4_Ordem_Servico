@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/session/session_manager.dart';
@@ -13,8 +14,12 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _email = TextEditingController(text: 'admin@g4os.com.br');
-  final _senha = TextEditingController(text: '123456');
+  // Preenchimento automático apenas em modo debug, para agilizar os testes.
+  // Em build release os campos iniciam vazios.
+  final _email = TextEditingController(
+    text: kDebugMode ? 'admin@g4os.com.br' : '',
+  );
+  final _senha = TextEditingController(text: kDebugMode ? '123456' : '');
   final _authService = AuthService();
 
   bool _ocultarSenha = true;

@@ -1,0 +1,25 @@
+G4 OS - Inclusão isolada da Galeria de Fotos da Ordem de Serviço
+
+- Mantidos os recursos existentes do aplicativo.
+- SQLite atualizado de versão 6 para 7.
+- Nova tabela: os_fotos.
+- Máximo de 6 fotos por Ordem de Serviço.
+- Fotos podem ser capturadas pela câmera ou escolhidas da galeria.
+- Imagens são copiadas para a pasta privada do aplicativo; o SQLite guarda o caminho e metadados.
+- Compressão/limite de resolução aplicado na seleção (qualidade 78, máximo 1920x1920).
+- Galeria interna na tela da OS com contador 0/6 a 6/6.
+- Visualização ampliada.
+- Descrição opcional de até 100 caracteres.
+- Exclusão de foto.
+- Persistência das fotos vinculada ao salvamento da OS.
+- Campos de sincronização mantidos para futura integração SaaS.
+
+Arquivos novos:
+lib/models/ordem_servico_foto.dart
+lib/repositories/ordem_servico_foto_repository.dart
+lib/screens/ordens/os_fotos_screen.dart
+
+Arquivos alterados:
+lib/core/database/database_service.dart
+lib/screens/ordens/ordem_form_screen.dart
+pubspec.yaml

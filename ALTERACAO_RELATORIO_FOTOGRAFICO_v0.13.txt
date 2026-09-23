@@ -1,0 +1,23 @@
+G4 OS - Inclusão do Relatório Fotográfico da Ordem de Serviço
+
+Base: GS_OS(6).zip
+
+Inclusões realizadas:
+- Novo serviço: lib/services/relatorio_fotografico_pdf_service.dart
+- Novo botão "Relatório fotográfico" na Ordem de Serviço.
+- Novo botão "Compartilhar relatório" na Ordem de Serviço.
+- PDF A4 com identificação da OS, cliente, veículo/item e até 6 fotos.
+- Cada foto utiliza a descrição opcional já cadastrada na galeria.
+- O cabeçalho utiliza os dados da empresa quando cadastrados.
+- Compartilhamento Android usa exatamente o canal MethodChannel
+  'g4_os/compartilhamento' / método 'compartilharPdf', igual à ficha de vistoria.
+- Em outras plataformas utiliza Printing.sharePdf.
+- Nome do arquivo: RELATORIO_FOTOGRAFICO_OS_XXXXXX.pdf
+
+Não foram alterados:
+- Estrutura do banco SQLite.
+- Cadastro/galeria de fotos.
+- PDF normal da OS.
+- PDF do Pedido.
+- PDF da Ficha de Vistoria.
+- Cadastros, produtos, serviços ou regras de cálculo.

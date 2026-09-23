@@ -1,0 +1,26 @@
+G4 OS - v0.15.0+17
+ALERTAS AUTOMATICOS DE MANUTENCAO PREVENTIVA
+
+1. A tela inicial agora consulta automaticamente as manutencoes preventivas ao abrir o app.
+2. A consulta considera:
+   - historico de manutencoes executadas;
+   - ultima quilometragem conhecida nas Ordens de Servico;
+   - intervalos em km e/ou meses configurados no cadastro de manutencoes.
+3. Situacoes exibidas:
+   - VENCIDA;
+   - PROXIMA;
+   - VERIFICAR.
+4. Foi criada a tela "Alertas de manutencao" com filtros e detalhes por cliente/veiculo.
+5. Cada alerta possui uma mensagem sugerida para contato com o cliente e botao para copiar a mensagem.
+6. Foi incluida uma simulacao opcional "Gabriel / Fiat Uno" para demonstracao dos alertas.
+   A simulacao e criada somente quando o usuario aciona o botao com icone de laboratorio na tela de alertas.
+7. Nenhuma alteracao de estrutura do SQLite foi necessaria. DatabaseVersion permanece 8.
+
+ARQUIVOS NOVOS:
+- lib/models/alerta_manutencao.dart
+- lib/repositories/alerta_manutencao_repository.dart
+- lib/screens/manutencoes/alertas_manutencao_screen.dart
+
+ARQUIVOS ALTERADOS:
+- lib/screens/home/home_screen.dart
+- pubspec.yaml

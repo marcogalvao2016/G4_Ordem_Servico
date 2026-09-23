@@ -1,0 +1,14 @@
+G4 OS v0.17.0+19 - Carga de demonstração expandida
+
+- Ampliação da base fictícia para demonstrações comerciais.
+- 20 clientes fictícios no total.
+- 23 itens/veículos/equipamentos no total.
+- 20 serviços cadastrados no total.
+- 35 produtos cadastrados no total.
+- 41 ordens de serviço fictícias no total.
+- Novas OS com serviços e produtos vinculados.
+- Inclusão de veículos como Honda Civic, Renault Duster, Chevrolet S10, Jeep Compass, Ford Ka, Corsa, Hilux, Renegade, Sprinter, Ducato, Amarok, Fiorino, Montana e Honda CG 160.
+- Histórico antigo de manutenções preventivas combinado com OS recentes e quilometragens maiores para produzir alertas de manutenção vencida/próxima.
+- Datas continuam relativas ao dia da carga para manter a demonstração útil ao longo do tempo.
+
+Todos os nomes, documentos, placas, chassis, contatos e dados são fictícios.

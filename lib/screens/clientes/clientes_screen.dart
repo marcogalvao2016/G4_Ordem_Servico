@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/session/session_manager.dart';
 import '../../models/cliente.dart';
 import '../../repositories/cliente_repository.dart';
 import '../../widgets/elegant_list_card.dart';
